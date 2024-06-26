@@ -7,7 +7,8 @@ __author__ = 'NgaiYeancoi','canyie'
 
 import tkinter as tk
 from tkinter import messagebox,Toplevel,Button,Label,Entry
-import time
+import time,re
+import bank
 
 ## GUI的部分
 def callback(): #是否退出询问方框
@@ -16,22 +17,30 @@ def callback(): #是否退出询问方框
         root.destroy() #关闭窗口
     else:
         return
-def updateTime(): #时间
+def updateTime(): #时间模块
     setTime=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
     label_time=tk.Label(root,text=setTime,font=(10))
     label_time.place(x=800,y=570)
     label_time.after(1000,updateTime)
 
 
-
-
 def createAccount():  # 开户函数
     def createCheckPasswords():
         if createAccountEntry1.get() != createAccountEntry2.get():
             messagebox.showwarning('错误', '你输入的密码不一致')
+            createAccount()
         else:
-            messagebox.showinfo('成功', '密码输入一致，开户成功')
-            top.destroy()  # 密码一致时关闭弹出窗口
+            userPassword=createAccountEntry1.get()
+            if not re.match(r"^\d{6}$", userPassword):
+                messagebox.showwarning('错误',f'{userPassword}必须是六位整数！')
+                createAccount()
+            else:
+                messagebox.showinfo('成功', '密码输入一致，开户成功')
+                top.destroy()  # 密码一致时关闭弹出窗口
+    def createClear():
+        createAccountEntry1.delete(0,'end')
+        createAccountEntry2.delete(0, 'end')
+    #点击开户后窗口
     global top
     top=Toplevel(root)
     top.title('开户')
@@ -44,6 +53,7 @@ def createAccount():  # 开户函数
     # 计算窗口在屏幕上的位置
     centerX = int(screen_width / 2 - width / 2)
     centerY = int(screen_height / 2 - height / 2)
+    top.resizable(width=False, height=False) #不允许改变窗口大小
     # 设置窗口的位置和大小
     top.geometry(f"{width}x{height}+{centerX}+{centerY}")
     createAccountLabel1 = Label(top, text="请输入密码：").pack()
@@ -52,17 +62,16 @@ def createAccount():  # 开户函数
     createAccountLabel2 = Label(top, text="请再次输入密码：").pack()
     createAccountEntry2 = Entry(top, show="*")
     createAccountEntry2.pack()
-    confirm_button = Button(top, text="确认", command=createCheckPasswords)
-    confirm_button.pack(side='bottom')
-
-
-
+    confirm_button = Button(top, text="确认", command=createCheckPasswords) #确认按钮
+    confirm_button.place(x=100, y=100)
+    delete_button = Button(top, text="重置", command=createClear) #清除按钮
+    delete_button.place(x=150, y=100)
 
 def mainWindow():
     global root
     # 主窗口部分
     root = tk.Tk()  # 建立Tkinter视窗
-    root.resizable(width=False, height=False)
+    root.resizable(width=False, height=False) #不允许改变窗口大小
     root.title('BaiyunUniversity Bank System')  # 设置窗口标题
     root.iconbitmap('./images/favicon.ico')  # 设置窗口icon
     window_width = root.winfo_screenwidth()  # 取得屏幕宽度
@@ -77,7 +86,7 @@ def mainWindow():
     label_top.pack(side='top')  # 标题定位到顶部
     updateTime()  # 嵌入时间窗口
     createAccountBtn = tk.Button(root,  # 建立开户按钮
-                                 text="开户",
+                                 text="开户注册\nCreate Account",
                                  width=20,
                                  height=5,
                                  bd=2, padx=10,
