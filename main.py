@@ -130,6 +130,11 @@ def mainWindow():
     backgroundImg = getImage('./images/bg.jpg', width=width, height=height)
     canvasRoot.create_image(550, 300, image=backgroundImg)
     canvasRoot.place(x=0, y=0)
+    # 各发行图片
+    # canvasBankUnionPay = tk.Canvas(root, width=200, height=200)
+    # BankUnionPayImg = getImage('./images/UnionPay.png', width=196, height=125)
+    # canvasBankUnionPay.create_image(100, 100, image=BankUnionPayImg)  # 居中显示银联图标
+    # canvasBankUnionPay.place(x=0, y=0)
     # 建立标题
     canvasRoot.create_text(550, 50, text='白云学院银行管理系统', font=('宋体', 50, 'bold', 'italic'), fill='white')
     # 嵌入时间窗口
@@ -140,7 +145,9 @@ def mainWindow():
                                  width=20,
                                  height=5,
                                  bd=2, padx=10,
-                                 bg='#ffffff',activebackground='#026dbd',font=('宋体',15, 'bold'),
+                                 bg='#ffffff',activebackground='#026dbd',
+                                 font=('宋体',15, 'bold'),
+                                 overrelief='sunken',
                                  command=createAccount)
     createAccountBtn.place(x=90, y=200)  # 开户按钮加入视窗
     # 时间图标---暂时弃用
@@ -151,8 +158,14 @@ def mainWindow():
     # 登录按钮
     signInBtn = tk.Button(root,
                        text="登录\nSign In",
-                       width=20, height=5,bd=2,
-                        padx=10,bg='#ffffff',activebackground='#026dbd',font=('宋体',15, 'bold'),
+                       width=20,
+                          height=5,
+                          bd=2,
+                          padx=10,
+                          bg='#ffffff',
+                          activebackground='#026dbd',
+                          font=('宋体',15, 'bold'),
+                          overrelief='sunken',
                           command=signIn)
     signInBtn.place(x=90, y=380)
 
