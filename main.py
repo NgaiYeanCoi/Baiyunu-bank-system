@@ -10,7 +10,8 @@ from PIL import Image, ImageTk
 import time,re
 from bank import Bank
 
-bank=Bank()
+bank = Bank()
+clockImg = None
 
 ## GUI的部分
 def callback(): #是否退出询问方框
@@ -35,7 +36,8 @@ def createAccount():  # 开户函数
                 messagebox.showwarning('错误',f'{userPassword}必须是六位整数！')
                 createAccount()
             else:
-                messagebox.showinfo('成功', '密码输入一致，开户成功')
+                account = bank.createAccount(userPassword)
+                messagebox.showinfo('成功', f'密码输入一致，开户成功，你的银行账号是：{account}')
                 top.destroy()  # 密码一致时关闭弹出窗口
     def createClear():
         createAccountEntry1.delete(0,'end')
@@ -92,17 +94,21 @@ def mainWindow():
                                  bd=2, padx=10,
                                  command=createAccount)
     createAccountBtn.place(x=20, y=200)  # 开户按钮加入视窗
+    # 时间图标 图片必须要放主函数否则就会出问题
+    # global clockImg
+    img1 = Image.open('./images/clock-solid.png')
+    img1 = img1.resize((24, 24))
+    global clockImg
+    clockImg = ImageTk.PhotoImage(img1)
+    labelClock = Label(root, image=clockImg)
+    labelClock.place(x=0, y=568)
+
 
 
 def main():
     #主窗口函数
     mainWindow()
-    #时间图标 图片必须要放主函数否则就会出问题
-    img1 = Image.open('./images/clock-solid.png')
-    img1 = img1.resize((24, 24))
-    clockImg = ImageTk.PhotoImage(img1)
-    labelClock = Label(root, image=clockImg)
-    labelClock.place(x=0, y=568)
+
     # 进入窗口消息循环
     root.mainloop()
 
