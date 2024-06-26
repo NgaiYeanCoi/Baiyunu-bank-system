@@ -2,13 +2,15 @@
 #-*- coding: UTF-8 -*-
 
 ' Baiyunu bank system '
-
 __author__ = 'NgaiYeancoi','canyie'
 
 import tkinter as tk
 from tkinter import messagebox,Toplevel,Button,Label,Entry
+from PIL import Image, ImageTk
 import time,re
-import bank
+from bank import Bank
+
+bank=Bank()
 
 ## GUI的部分
 def callback(): #是否退出询问方框
@@ -20,10 +22,8 @@ def callback(): #是否退出询问方框
 def updateTime(): #时间模块
     setTime=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
     label_time=tk.Label(root,text=setTime,font=(10))
-    label_time.place(x=800,y=570)
+    label_time.place(x=28,y=570)
     label_time.after(1000,updateTime)
-
-
 def createAccount():  # 开户函数
     def createCheckPasswords():
         if createAccountEntry1.get() != createAccountEntry2.get():
@@ -76,7 +76,7 @@ def mainWindow():
     root.iconbitmap('./images/favicon.ico')  # 设置窗口icon
     window_width = root.winfo_screenwidth()  # 取得屏幕宽度
     window_height = root.winfo_screenheight()  # 取得屏幕高度
-    width = 1000  # 宽
+    width = 1100  # 宽
     height = 600  # 高
     left = int((window_width - width) / 2)  # 计算左坐标
     top = int((window_height - height) / 2)  # 计算上坐标 以保证在中间显示
@@ -84,7 +84,7 @@ def mainWindow():
     root.protocol("WM_DELETE_WINDOW", callback)  # 嵌入是否退出窗口函数
     label_top = tk.Label(root, text='白云学院银行管理系统', font=('宋体', 50, 'bold', 'italic'))  # 建立标题标签
     label_top.pack(side='top')  # 标题定位到顶部
-    updateTime()  # 嵌入时间窗口
+    updateTime() # 嵌入时间窗口
     createAccountBtn = tk.Button(root,  # 建立开户按钮
                                  text="开户注册\nCreate Account",
                                  width=20,
@@ -95,8 +95,16 @@ def mainWindow():
 
 
 def main():
+    #主窗口函数
     mainWindow()
-    root.mainloop()  # 进入窗口消息循环
+    #时间图标 图片必须要放主函数否则就会出问题
+    img1 = Image.open('./images/clock-solid.png')
+    img1 = img1.resize((24, 24))
+    clockImg = ImageTk.PhotoImage(img1)
+    labelClock = Label(root, image=clockImg)
+    labelClock.place(x=0, y=568)
+    # 进入窗口消息循环
+    root.mainloop()
 
 if __name__ == '__main__':
     main()

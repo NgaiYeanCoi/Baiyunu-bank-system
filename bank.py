@@ -41,8 +41,8 @@ class Bank:
         :param password: 密码
         :return: 生成的账号
         """
-        if not re.match(r"^\d{6}$", password):
-            raise ValueError(f"密码 {password} 必须是六位整数！")
+        #if not re.match(r"^\d{6}$", password):
+            #raise ValueError(f"密码 {password} 必须是六位整数！")
         account = Account.create(password)
         self.__currentMaxAccount += 1
         accountNumber = str(self.__currentMaxAccount)
