@@ -33,7 +33,7 @@ class Bank:
         self.__currentMaxAccount = 4000000000000000
         for key in self.__db.keys():
             self.__currentMaxAccount = max(self.__currentMaxAccount, int(key))
-            self.__accounts[int(key)] = Account.deserialize(self.__db.get(key))
+            self.__accounts[key] = Account.deserialize(self.__db.get(key))
 
     def createAccount(self, password):
         """
@@ -45,9 +45,10 @@ class Bank:
             raise ValueError(f"密码 {password} 必须是六位整数！")
         account = Account.create(password)
         self.__currentMaxAccount += 1
-        self.__accounts[self.__currentMaxAccount] = account
-        self.__db.set(self.__currentMaxAccount, account.serialize())
-        return self.__currentMaxAccount
+        accountNumber = str(self.__currentMaxAccount)
+        self.__accounts[accountNumber] = account
+        self.__db.set(accountNumber, account.serialize())
+        return accountNumber
 
     def verify(self, accountNumber, password):
         """
@@ -91,7 +92,7 @@ class Bank:
         if account.locked:
             raise AccountLockedError(f"账号 {accountNumber} 已被锁定！")
         if amount > account.balance:
-            raise OverflowError(f"取款金额 {amount} 大于当前账户余额 ${account.balance}！")
+            raise OverflowError(f"取款金额 {amount} 大于当前账户余额 {account.balance}！")
         account.balance -= amount
         self.__db.set(accountNumber, account.serialize())
         return account.balance
@@ -112,7 +113,7 @@ class Bank:
         if srcAccount.locked:
             raise AccountLockedError("账号 " + source + " 已被锁定！")
         if amount > srcAccount.balance:
-            raise OverflowError(f"转账金额 {amount} 大于当前账户余额 ${srcAccount.balance}！")
+            raise OverflowError(f"转账金额 {amount} 大于当前账户余额 {srcAccount.balance}！")
         srcAccount.balance -= amount
         destAccount.balance += amount
         self.__db.setNoSave(source, srcAccount.serialize())
@@ -146,7 +147,7 @@ class Bank:
         :return: Decimal
         """
         if not re.match(r"^\d+(\.\d{1,2})?$", amount):
-            raise ValueError(f"金额 {amount} 必须是整数或最多两位小数！")
+            raise ValueError(f"金额 {amount} 必须是大于 0 的整数或最多两位小数！")
         d = Decimal(amount)
         if d <= 0:
             raise ValueError(f"金额 {amount} 必须是正数！")
