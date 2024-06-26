@@ -87,8 +87,9 @@ def signIn():
             signIn()
         elif bank.verify(userAccount, userPassword)==True:
             messagebox.showwarning('登入', f'{userAccount}用户登入成功！')
+            createAccountBtn.destroy()
+            signInBtn.destroy()
 
-        pass
     signInTop = Toplevel(root)
     signInTop.title("登录")
     width = 300
@@ -140,6 +141,7 @@ def mainWindow():
     # 嵌入时间窗口
     updateTime()
     # 建立开户按钮
+    global createAccountBtn
     createAccountBtn = tk.Button(root,
                                  text="开户注册\nCreate Account",
                                  width=20,
@@ -156,6 +158,7 @@ def mainWindow():
     # labelClock = Label(root, image=clockImg)
     # labelClock.place(x=0, y=568)
     # 登录按钮
+    global signInBtn
     signInBtn = tk.Button(root,
                        text="登录\nSign In",
                        width=20,
