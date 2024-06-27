@@ -138,6 +138,16 @@ class Bank:
         account.locked = locked
         self.__db.set(accountNumber, account.serialize())
 
+    def resetPassword(self, accountNumber, newPassword):
+        """
+        修改账户 密码
+        :param accountNumber: 账户账号
+        :param newPassword: 新的密码
+        """
+        account = self.__convertAccount(accountNumber)
+        account.password = newPassword
+        self.__db.set(accountNumber, account.serialize())
+
     def __convertAccount(self, accountNumber):
         """
         将数字账号转换成 Account 对象。找不到对应 Account 时抛出 KeyError。
