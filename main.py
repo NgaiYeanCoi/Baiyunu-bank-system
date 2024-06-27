@@ -55,11 +55,13 @@ def createAccount():  # 开户函数
     def createCheckPasswords():
         if createAccountEntry1.get() != createAccountEntry2.get():
             messagebox.showwarning('错误', '你输入的密码不一致')
+            top.destroy()
             createAccount()
         else:
             userPassword=createAccountEntry1.get()
             if not re.match(r"^\d{6}$", userPassword):
                 messagebox.showwarning('错误',f'您输入的密码必须是六位整数！')
+                top.destroy()
                 createAccount()
             else:
                 account = bank.createAccount(userPassword)
@@ -94,10 +96,6 @@ def login(userAccount):
     # 建立标题
     canvasRoot.create_text(550, 120, text='请选择业务', font=('宋体', 25, 'bold', 'bold'), fill='white')
     canvasRoot.create_text(550, 150, text='Please select next step', font=('宋体', 20, 'bold', 'italic'),fill='white')
-    def changePassword():
-        pass
-    def transfer():
-        pass
     def goBack():
         loginExit=messagebox.askokcancel('退出登录','是否要退出？')
         if loginExit== True:
@@ -105,6 +103,65 @@ def login(userAccount):
             mainWindow()
         else:
             return
+    def changePassword():
+        def  changePasswordFunc():
+            userPasswordNew = changePasswordTopEntryNew.get()
+            userPasswordComfirm = changePasswordTopEntryComfirm.get()
+            if not re.match(r"^\d{6}$", userPasswordComfirm):
+                messagebox.showwarning('错误', f'您输入的密码必须是六位整数！')
+                changePasswordTop.destroy()
+                changePassword()
+            else:
+                if userPasswordNew != userPasswordComfirm:
+                    messagebox.showwarning('错误', f'您输入的新密码不一致！')
+                    changePasswordTop.destroy()
+                    changePassword()
+                elif changePasswordTopEntryNew.get() == changePasswordTopEntryPre.get():
+                    messagebox.showwarning('错误', '新密码与旧密码相同')
+                    changePasswordTop.destroy()
+                    changePassword()
+                elif bank.verify(userAccount, changePasswordTopEntryNew):
+                    messagebox.showwarning('错误', '您输入的旧密码错误')
+                    changePasswordTop.destroy()
+                    changePassword()
+                else:
+                    bank.resetPassword(userAccount,userPasswordNew)
+                    messagebox.showinfo('成功', f'您的账户：{userAccount}\n密码修改成功\n请务必记住新的密码记住！')
+                    userPasswordComfirm=changePasswordTopEntryNew.get()
+                    changePasswordTop.destroy()  # 密码一致时关闭弹出窗口
+
+
+        def changePasswordClear():
+            changePasswordTopEntryPre.delete(0, 'end')
+            changePasswordTopEntryNew.delete(0, 'end')
+            changePasswordTopEntryComfirm.delete(0,'end')
+        # 改密码窗口
+        changePasswordTop = Toplevel(root)
+        changePasswordTop.title("修改密码")
+        width = 250
+        height = 200
+        centerX = int(window_width / 2 - width / 2)
+        centerY = int(window_height / 2 - height / 2)
+        changePasswordTop.resizable(width=False, height=False)  # 不允许改变窗口大小
+        changePasswordTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+        changePasswordTopLabel1 = Label(changePasswordTop, text="请输入旧密码")
+        changePasswordTopLabel1.pack()
+        changePasswordTopEntryPre = Entry(changePasswordTop,show='*') #旧密码表单
+        changePasswordTopEntryPre.pack()
+        changePasswordTopLabel2 = Label(changePasswordTop, text="请输入新密码")
+        changePasswordTopLabel2.pack()
+        changePasswordTopEntryNew = Entry(changePasswordTop,show='*') #新密码表单
+        changePasswordTopEntryNew.pack()
+        changePasswordTopLabel3 = Label(changePasswordTop, text="请再次输入新密码")
+        changePasswordTopLabel3.pack()
+        changePasswordTopEntryComfirm = Entry(changePasswordTop,show='*') #确认密码表单
+        changePasswordTopEntryComfirm.pack()
+        confirm_button = Button(changePasswordTop, text="确认", width=5,command=changePasswordFunc)  # 确认按钮
+        confirm_button.place(x=60, y=150)
+        delete_button = Button(changePasswordTop, text="重置", width=5,command=changePasswordClear)  # 清除按钮
+        delete_button.place(x=145, y=150)
+    def transfer():
+        pass
     def deposit(): # 存款函数
         def depositFunc():
             # 获取交易前余额
@@ -113,8 +170,10 @@ def login(userAccount):
             try:
                 bank.makeDeposit(userAccount,userAmount)
                 messagebox.showinfo('存款',f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{bank.getBalance(userAccount)}元')
+                depositTop.destroy()
             except ValueError:
                 messagebox.showwarning('错误', f'取款金额不合法请重新输入')
+                depositTop.destroy()
         # 存款窗口
         depositTop = Toplevel(root)
         depositTop.title("取款")
@@ -141,12 +200,16 @@ def login(userAccount):
             try:
                 bank.withdrawal(userAccount,userAmount)
                 messagebox.showinfo('取款', f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{bank.getBalance(userAccount)}元')
+                withdrawalTop.destroy()
             except AccountLockedError:
                 messagebox.showwarning('错误',f'账户{userAccount}\n已被锁定')
+                withdrawalTop.destroy()
             except OverflowError:
                 messagebox.showwarning('错误', f'取款金额不得大于账户余额\n账户：{userAccount}\n您的当前余额为{bank.getBalance(userAccount)}元')
+                withdrawalTop.destroy()
             except ValueError:
                 messagebox.showwarning('错误', f'取款金额不合法请重新输入')
+                withdrawalTop.destroy()
         #取款窗口
         withdrawalTop = Toplevel(root)
         withdrawalTop.title("取款")
@@ -209,7 +272,7 @@ def login(userAccount):
                            font=('宋体', 15, 'bold'),
                            overrelief='sunken',
                            command=goBack)
-    goBackBtn.place(x=680, y=380)  # 退出按钮加入视窗
+    goBackBtn.place(x=680, y=380)  # 退出按钮加视窗
     # 建立转账按钮
     global transferBtn
     transferBtn = tk.Button(root,
@@ -245,7 +308,8 @@ def signIn():
             messagebox.showwarning('错误', '您的密码不足六位！')
             signIn()
         elif bank.verify(userAccount, userPassword):
-            messagebox.showinfo('登入', f'{userAccount}用户登入成功！')
+            messagebox.showinfo('登入', f'账户：{userAccount}\n登入成功！')
+            signInTop.destroy()
             createAccountBtn.destroy()
             signInBtn.destroy()
             login(userAccount)
@@ -330,9 +394,6 @@ def mainWindow(): # 主窗口部分
                           overrelief='sunken',
                           command=signIn)
     signInBtn.place(x=90, y=380)
-
-
-
 def main():
     #主窗口函数
     mainWindow()
