@@ -8,13 +8,14 @@ import tkinter as tk
 from tkinter import messagebox,Toplevel,Button,Label,Entry
 from PIL import Image, ImageTk
 import time,re
-from bank import bank
+from bank import bank, AccountLockedError
 
 clockImg = None
 
+
 ## GUI的部分
 def callback(): #是否退出询问方框
-    windowExit=messagebox.askyesno('BaiyunUniversity bank system','是否要退出？')
+    windowExit=messagebox.askyesno('关闭窗口','是否要退出？')
     if windowExit ==True:
         root.destroy() #关闭窗口
     else:
@@ -47,7 +48,7 @@ def updateTime(): #时间模块
     # time_text = canvasRoot.create_text(160, 570, text='', font=('宋体', 15, 'bold', 'italic'), fill='white')
     # canvasRoot.itemconfig(time_text, text=setTime)  # 更新文本内容
     # canvasRoot.after(1000,updateTime)
-    label_time=tk.Label(root,text=setTime,font=(10),fg='#ffffff', bg='#000000')
+    label_time=tk.Label(root,text=setTime,font=(10),fg='#ffffff', bg='#171717')
     label_time.place(x=28,y=570)
     label_time.after(1000,updateTime)
 def createAccount():  # 开户函数
@@ -58,7 +59,7 @@ def createAccount():  # 开户函数
         else:
             userPassword=createAccountEntry1.get()
             if not re.match(r"^\d{6}$", userPassword):
-                messagebox.showwarning('错误',f'{userPassword}必须是六位整数！')
+                messagebox.showwarning('错误',f'您输入的密码必须是六位整数！')
                 createAccount()
             else:
                 account = bank.createAccount(userPassword)
@@ -89,22 +90,168 @@ def createAccount():  # 开户函数
     confirm_button.place(x=100, y=100)
     delete_button = Button(top, text="重置", command=createClear) #清除按钮
     delete_button.place(x=150, y=100)
+def login(userAccount):
+    # 建立标题
+    canvasRoot.create_text(550, 120, text='请选择业务', font=('宋体', 25, 'bold', 'bold'), fill='white')
+    canvasRoot.create_text(550, 150, text='Please select next step', font=('宋体', 20, 'bold', 'italic'),fill='white')
+    def changePassword():
+        pass
+    def transfer():
+        pass
+    def goBack():
+        loginExit=messagebox.askokcancel('退出登录','是否要退出？')
+        if loginExit== True:
+            root.destroy()
+            mainWindow()
+        else:
+            return
+    def deposit(): # 存款函数
+        def depositFunc():
+            # 获取交易前余额
+            beforeBalance = bank.getBalance(userAccount)
+            userAmount = depositTopEntryAmount.get()
+            try:
+                bank.makeDeposit(userAccount,userAmount)
+                messagebox.showinfo('存款',f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{bank.getBalance(userAccount)}元')
+            except ValueError:
+                messagebox.showwarning('错误', f'取款金额不合法请重新输入')
+        # 存款窗口
+        depositTop = Toplevel(root)
+        depositTop.title("取款")
+        width = 250
+        height = 100
+        centerX = int(window_width / 2 - width / 2)
+        centerY = int(window_height / 2 - height / 2)
+        depositTop.resizable(width=False, height=False)  # 不允许改变窗口大小
+        depositTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+        depositTopLabel1 = Label(depositTop, text="请输入存款金额")
+        depositTopLabel1.pack()
+        depositTopEntryAmount = Entry(depositTop)
+        depositTopEntryAmount.pack()
+        confirm_button = Button(depositTop, text="确认", width=15, command=depositFunc)  # 确认按钮
+        confirm_button.place(x=68, y=58)
+    def checkBalance():  # 查余额函数
+        messagebox.showinfo('查询余额',f'您的账户{userAccount}'
+                                          f'\n余额为：{bank.getBalance(userAccount)}元'
+                                          f'\n您的用户状态：{"已锁定" if bank.getLockState(userAccount) else "未锁定"}')
+    def withdrawal(): # 取款函数
+        def withdrawalFunc():
+            beforeBalance = bank.getBalance(userAccount) # 获取交易前余额
+            userAmount=withdrawalEntryAmount.get()
+            try:
+                bank.withdrawal(userAccount,userAmount)
+                messagebox.showinfo('取款', f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{bank.getBalance(userAccount)}元')
+            except AccountLockedError:
+                messagebox.showwarning('错误',f'账户{userAccount}\n已被锁定')
+            except OverflowError:
+                messagebox.showwarning('错误', f'取款金额不得大于账户余额\n账户：{userAccount}\n您的当前余额为{bank.getBalance(userAccount)}元')
+            except ValueError:
+                messagebox.showwarning('错误', f'取款金额不合法请重新输入')
+        #取款窗口
+        withdrawalTop = Toplevel(root)
+        withdrawalTop.title("取款")
+        width = 250
+        height = 100
+        centerX = int(window_width / 2 - width / 2)
+        centerY = int(window_height / 2 - height / 2)
+        withdrawalTop.resizable(width=False, height=False)  # 不允许改变窗口大小
+        withdrawalTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+        withdrawalLabel1 = Label(withdrawalTop, text="请输入取款金额")
+        withdrawalLabel1.pack()
+        withdrawalEntryAmount = Entry(withdrawalTop)
+        withdrawalEntryAmount.pack()
+        confirm_button = Button(withdrawalTop, text="确认", width=15, command=withdrawalFunc)  # 确认按钮
+        confirm_button.place(x=68, y=58)
+    # 建立查余额按钮
+    global checkBalanceBtn
+    checkBalaneBtn = tk.Button(root,
+                                 text="查询余额\nBalance iquiry",
+                                 width=20,
+                                 height=5,
+                                 bd=2, padx=10,
+                                 bg='#ffffff', activebackground='#026dbd',
+                                 font=('宋体', 15, 'bold'),
+                                 overrelief='sunken',
+                                 command=checkBalance)
+    checkBalaneBtn.place(x=100, y=380)  # 查询余额按钮加入视窗
+    # 建立取款按钮
+    global withdrawalBtn
+    withdrawalBtn = tk.Button(root,
+                               text="取款\nWithdrawal",
+                               width=20,
+                               height=5,
+                               bd=2, padx=10,
+                               bg='#ffffff', activebackground='#026dbd',
+                               font=('宋体', 15, 'bold'),
+                               overrelief='sunken',
+                               command=withdrawal)
+    withdrawalBtn.place(x=100, y=200)  # 取款按钮加入视窗
+    # 建立存款按钮
+    global depositBtn
+    depositBtn = tk.Button(root,
+                              text="存款\nDeposit",
+                              width=20,
+                              height=5,
+                              bd=2, padx=10,
+                              bg='#ffffff', activebackground='#026dbd',
+                              font=('宋体', 15, 'bold'),
+                              overrelief='sunken',
+                              command=deposit)
+    depositBtn.place(x=390, y=200)  # 存款按钮加入视窗
+    # 建立退出按钮
+    global goBackBtn
+    goBackBtn = tk.Button(root,
+                           text="退出\nExit",
+                           width=20,
+                           height=5,
+                           bd=2, padx=10,
+                           bg='#026dbd', activebackground='#ffffff',
+                           font=('宋体', 15, 'bold'),
+                           overrelief='sunken',
+                           command=goBack)
+    goBackBtn.place(x=680, y=380)  # 退出按钮加入视窗
+    # 建立转账按钮
+    global transferBtn
+    transferBtn = tk.Button(root,
+                           text="转账\nTransfer",
+                           width=20,
+                           height=5,
+                           bd=2, padx=10,
+                           bg='#ffffff', activebackground='#026dbd',
+                           font=('宋体', 15, 'bold'),
+                           overrelief='sunken',
+                           command=transfer)
+    transferBtn.place(x=680, y=200)  # 转账按钮加入视窗
+    # 建立修改密码
+    global changePasswordBtn
+    transferBtn = tk.Button(root,
+                            text="修改密码\nChange Password",
+                            width=20,
+                            height=5,
+                            bd=2, padx=10,
+                            bg='#ffffff', activebackground='#026dbd',
+                            font=('宋体', 15, 'bold'),
+                            overrelief='sunken',
+                            command=changePassword)
+    transferBtn.place(x=390, y=380)  # 转账按钮加入视窗
+
 
 def signIn():
     def signInVerify():
         userPassword=signInEntryPassword.get()
         userAccount=signInEntryAccount.get()
+        #login(userAccount)##########调试用
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不足六位！')
             signIn()
         elif bank.verify(userAccount, userPassword):
-            messagebox.showwarning('登入', f'{userAccount}用户登入成功！')
+            messagebox.showinfo('登入', f'{userAccount}用户登入成功！')
             createAccountBtn.destroy()
             signInBtn.destroy()
+            login(userAccount)
         else:
             messagebox.showwarning('错误', '您输入的账号不存在或密码错误！\n请重新输入')
             signIn()
-
     signInTop = Toplevel(root)
     signInTop.title("登录")
     width = 300
@@ -121,11 +268,8 @@ def signIn():
     signInEntryPassword.pack()
     confirm_button = Button(signInTop, text="登录",width=15, command=signInVerify) #确认按钮
     confirm_button.place(x=90, y=100)
-
-
-def mainWindow():
+def mainWindow(): # 主窗口部分
     global root
-    # 主窗口部分
     root = tk.Tk()  # 建立Tkinter视窗
     root.resizable(width=False, height=False) #不允许改变窗口大小
     root.title('BaiyunUniversity Bank System')  # 设置窗口标题
@@ -135,9 +279,9 @@ def mainWindow():
     window_height = root.winfo_screenheight()  # 取得屏幕高度
     width = 1100  # 宽
     height = 600  # 高
-    left = int((window_width - width) / 2)  # 计算左坐标
-    top = int((window_height - height) / 2)  # 计算上坐标 以保证在中间显示
-    root.geometry(f'{width}x{height}+{left}+{top}')  # 定义视窗大小
+    centerX = int((window_width - width) / 2)  # 计算左坐标
+    centerY = int((window_height - height) / 2)  # 计算上坐标 以保证在中间显示
+    root.geometry(f'{width}x{height}+{centerX}+{centerY}')  # 定义视窗大小
     root.protocol("WM_DELETE_WINDOW", callback)  # 嵌入是否退出窗口函数
     # 背景图片
     global backgroundImg
