@@ -27,14 +27,30 @@ def getImage(file,width,height):
             """
     image = Image.open(file).resize((width,height))
     return ImageTk.PhotoImage(image)
+def processImageWithTransparency(file, width, height, bg, fg):
+    image = Image.open(file).resize((width,height)).convert("RGBA")
+    newImage = Image.new("RGBA", image.size, bg + (255,))
+    pixels = image.load()  # 读取原图像的像素数据
+    newPixels = newImage.load()  # 读取新图像的像素数据
+    # 遍历图像的每个像素
+    for y in range(image.size[1]):
+        for x in range(image.size[0]):
+            r, g, b, a = pixels[x, y]
+            if a == 0:
+                newPixels[x, y] = bg + (255,)
+            else:
+                newPixels[x, y] = fg + (255,)
+
+    return ImageTk.PhotoImage(newImage)
+
 def updateTime(): #时间模块
     setTime=time.strftime('%Y-%m-%d %H:%M:%S',time.localtime())
-    time_text = canvasRoot.create_text(160, 570, text='', font=('宋体', 15, 'bold', 'italic'), fill='white')
-    canvasRoot.itemconfig(time_text, text=setTime)  # 更新文本内容
-    canvasRoot.after(1000,updateTime)
-    # label_time=tk.Label(root,text=setTime,font=(10),fg='#ffffff')
-    # label_time.place(x=28,y=570)
-    # label_time.after(1000,updateTime)
+    # time_text = canvasRoot.create_text(160, 570, text='', font=('宋体', 15, 'bold', 'italic'), fill='white')
+    # canvasRoot.itemconfig(time_text, text=setTime)  # 更新文本内容
+    # canvasRoot.after(1000,updateTime)
+    label_time=tk.Label(root,text=setTime,font=(10),fg='#ffffff', bg='#000000')
+    label_time.place(x=28,y=570)
+    label_time.after(1000,updateTime)
 def createAccount():  # 开户函数
     def createCheckPasswords():
         if createAccountEntry1.get() != createAccountEntry2.get():
@@ -153,10 +169,10 @@ def mainWindow():
                                  command=createAccount)
     createAccountBtn.place(x=90, y=200)  # 开户按钮加入视窗
     # 时间图标---暂时弃用
-    # global clockImg
-    # clockImg=getImage('./images/clock-solid.png', 24, 24)
-    # labelClock = Label(root, image=clockImg)
-    # labelClock.place(x=0, y=568)
+    global clockImg
+    clockImg=processImageWithTransparency('./images/clock-solid.png', 24, 24, (0, 0, 0), (255, 255, 255))
+    labelClock = Label(root, image=clockImg)
+    labelClock.place(x=0, y=568)
     # 登录按钮
     global signInBtn
     signInBtn = tk.Button(root,
