@@ -160,3 +160,5 @@ class Bank:
         if d <= 0:
             raise ValueError(f"金额 {amount} 必须是正数！")
         return d
+
+bank = Bank()

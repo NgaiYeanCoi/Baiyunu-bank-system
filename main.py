@@ -8,9 +8,8 @@ import tkinter as tk
 from tkinter import messagebox,Toplevel,Button,Label,Entry
 from PIL import Image, ImageTk
 import time,re
-from bank import Bank
+from bank import bank
 
-bank = Bank()
 clockImg = None
 
 ## GUI的部分
