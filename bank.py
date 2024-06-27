@@ -57,7 +57,7 @@ class Bank:
         :param password: 密码
         :return: True 如果匹配，False 不匹配或账号不存在
         """
-        account = self.__accounts[accountNumber]
+        account = self.__accounts.get(accountNumber)
         return account and account.password == password
 
     def getBalance(self, account):

@@ -82,13 +82,13 @@ def signIn():
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不足六位！')
             signIn()
-        elif bank.verify(userAccount, userPassword)==False:
-            messagebox.showwarning('错误', '您输入的账号不存在或密码错误！\n请重新输入')
-            signIn()
-        elif bank.verify(userAccount, userPassword)==True:
+        elif bank.verify(userAccount, userPassword):
             messagebox.showwarning('登入', f'{userAccount}用户登入成功！')
             createAccountBtn.destroy()
             signInBtn.destroy()
+        else:
+            messagebox.showwarning('错误', '您输入的账号不存在或密码错误！\n请重新输入')
+            signIn()
 
     signInTop = Toplevel(root)
     signInTop.title("登录")
