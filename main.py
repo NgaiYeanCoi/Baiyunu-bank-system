@@ -354,9 +354,7 @@ def signIn():
             signInTop.destroy()
             createAccountBtn.destroy()
             signInBtn.destroy()
-            canvasRoot.delete(UnionPay_id)
-            canvasRoot.delete(Visa_id)
-            canvasRoot.delete(JCB_id)
+            canvasRoot.delete(UnionPay_id,Visa_id,JCB_id,BaiyunId,txtId1,txtId2)
             login(userAccount)
         else:
             messagebox.showwarning('错误', '您输入的账号不存在或密码错误！\n请重新输入')
@@ -398,7 +396,7 @@ def mainWindow(): # 主窗口部分
     global backgroundImg
     global canvasRoot
     canvasRoot = tk.Canvas(root, width=width, height=height)
-    backgroundImg = getImage('./images/bg.jpg', width=width, height=height)
+    backgroundImg = getImage('./images/bg.png', width=width, height=height)
     canvasRoot.create_image(550, 300, image=backgroundImg)
     canvasRoot.place(x=0, y=0)
     # 各发行图片
@@ -407,8 +405,11 @@ def mainWindow(): # 主窗口部分
     # canvasBankUnionPay.create_image(100, 100, image=BankUnionPayImg)  # 居中显示银联图标
     # canvasBankUnionPay.place(x=0, y=0)
     # 建立标题
-    canvasRoot.create_text(550, 50, text='白云学院银行管理系统', font=('宋体', 50, 'bold', 'italic'), fill='white')
+    #canvasRoot.create_text(550, 50, text='白云学院银行管理系统', font=('宋体', 50, 'bold', 'italic'), fill='white')
     canvasRoot.create_text(550, 580, text='您的财富由我们掌控！', font=('宋体', 15, 'bold', 'italic'), fill='white')
+    global txtId1,txtId2
+    txtId1=canvasRoot.create_text(600, 345, text='请插入\n您的卡片\n', font=('黑体', 20, 'bold'), fill='white')
+    txtId2=canvasRoot.create_text(585, 385, text='Insert\nyour card', font=('黑体', 10, 'bold'), fill='white')
     # 嵌入时间窗口
     updateTime()
     # 建立开户按钮
@@ -428,7 +429,13 @@ def mainWindow(): # 主窗口部分
     clockImg=processImageWithTransparency('./images/clock-solid.png', 24, 24, (0, 0, 0), (255, 255, 255))
     labelClock = Label(root, image=clockImg)
     labelClock.place(x=0, y=568)
-    global UnionPayImg,UnionPay_id,MasterCardImg,MasterCard_id,JCBImg,JCB_id,VisaImg,Visa_id
+    global UnionPayImg,UnionPay_id,MasterCardImg,MasterCard_id,JCBImg,JCB_id,VisaImg,Visa_id,TopBgImg,BaiyunCardImg,BaiyunId
+    #插入白云卡
+    BaiyunCardImg = getImage('./images/BaiyunBank.png', width=320, height=219)
+    BaiyunId=canvasRoot.create_image(850, 300, image=BaiyunCardImg)
+    # 插入Top图片
+    TopBgImg = getImage('./images/Top.png', width=1100, height=95)
+    canvasRoot.create_image(550,48, image=TopBgImg)
     # 插入银联图片
     UnionPayImg = getImage('./images/UnionPay.png',width=65, height=41)
     UnionPay_id=canvasRoot.create_image(730, 470,image=UnionPayImg)
