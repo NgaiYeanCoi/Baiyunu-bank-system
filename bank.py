@@ -2,16 +2,22 @@ import re
 from db import Database
 from decimal import Decimal
 
-# 存储格式
+# 存储格式：
 # 账号(数字),密码(六位数字),余额(浮点数，精确到小数点后两位),账号是否锁定(布尔值)
 
 
 class AccountLockedError(Exception):
+    """
+    账户已被锁定时尝试进行取款或转账业务，抛出此异常
+    """
     def __init__(self, msg):
         super(Exception, self).__init__(msg)
 
 
 class Account:
+    """
+    内部描述账户的数据结构类
+    """
     def __init__(self, password, balance, locked):
         self.password = password
         self.balance = Decimal(balance)
@@ -19,20 +25,39 @@ class Account:
 
     @staticmethod
     def create(password):
+        """
+        通过密码创建新的 Account 对象，默认账户余额为 0 且未被锁定
+        :param password: 密码
+        :return: Account
+        """
         return Account(password, "0", False)
 
     @staticmethod
     def deserialize(data):
+        """
+        将磁盘文件里存储的数据转换成 Account 对象
+        :param data: 每行数据，列表或元组类型
+        :return: Account
+        """
         return Account(data[0], data[1], data[2] == 'True')
 
     def serialize(self):
+        """
+        将 Account 对象转换成 list，方便存储到到文件上
+        :return: list
+        """
         return [self.password, self.balance, self.locked]
 
 
 class Bank:
+    """
+    模拟银行服务后端接口
+    """
     def __init__(self):
         self.__db = Database("data.csv")
         self.__accounts = {}
+
+        # 需要获取当前已分配出去的最大的账号，以免分配账号重复
         self.__currentMaxAccount = 4000000000000000
         for key in self.__db.keys():
             self.__currentMaxAccount = max(self.__currentMaxAccount, int(key))
@@ -40,7 +65,7 @@ class Bank:
 
     def createAccount(self, password):
         """
-        创建新账号，密码格式错误时抛出 ValueError
+        创建新账号
         :param password: 密码
         :return: 生成的账号
         """
@@ -110,14 +135,12 @@ class Bank:
 
     def transfer(self, source, dest, amount):
         """
-        转账，两个账号相等时产生 KeyError，金额不合法或大于源账号余额时产生 OverflowError，源账号被锁定时产生 AccountLockedError
+        转账，目标账号不存在时产生 KeyError，金额不合法或大于源账号余额时产生 OverflowError，源账号被锁定时产生 AccountLockedError
         :param source: 源账户账号
         :param dest: 目标账户账号
         :param amount: 金额
         :return: 账户剩余余额
         """
-        if source == dest:
-            raise KeyError(f"账号 {source} 不能自己给自己转账！")
         srcAccount = self.__convertAccount(source)
         destAccount = self.__convertAccount(dest)
         amount = Bank.__convertAmount(amount)
@@ -175,4 +198,5 @@ class Bank:
         return d
 
 
+# 全局的 Bank 对象，可直接使用
 bank = Bank()

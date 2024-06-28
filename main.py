@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 #-*- coding: UTF-8 -*-
 
-' Baiyunu bank system '
-__author__ = 'NgaiYeancoi','canyie'
+' Baiyun University bank system '
+__author__ = 'NgaiYeanCoi', 'canyie'
 
 import tkinter as tk
 from tkinter import messagebox,Toplevel,Button,Label,Entry
@@ -15,11 +15,9 @@ clockImg = None
 
 ## GUI的部分
 def callback(): #是否退出询问方框
-    windowExit=messagebox.askyesno('关闭窗口','是否要退出？')
-    if windowExit ==True:
+    if messagebox.askyesno('退出系统', '您真的要退出白云银行管理系统吗？'):
         root.destroy() #关闭窗口
-    else:
-        return
+
 def getImage(file,width,height):
     """
             获取图片方法打开指定图片文件，缩放到指定尺寸
@@ -97,7 +95,7 @@ def login(userAccount):
     canvasRoot.create_text(550, 120, text='请选择业务', font=('宋体', 25, 'bold', 'bold'), fill='white')
     canvasRoot.create_text(550, 150, text='Please select next step', font=('宋体', 20, 'bold', 'italic'),fill='white')
     def goBack():
-        loginExit=messagebox.askokcancel('退出登录','是否要退出？')
+        loginExit=messagebox.askokcancel('登出账户','是否要退出？')
         if loginExit== True:
             root.destroy()
             mainWindow()
@@ -163,11 +161,14 @@ def login(userAccount):
         def onConfirm():
             transferDesAccount=transferEntryDesAccount.get()
             transferAmount=transferEntryAmount.get()
+            if userAccount == transferDesAccount:
+                messagebox.showerror("错误", "不能自己给自己转账！")
+                return
             try:
                 bank.transfer(userAccount,transferDesAccount,transferAmount)
                 messagebox.showinfo("转账",f"交易成功！\n您当前的余额为：{bank.getBalance(userAccount)}")
             except KeyError:
-                messagebox.showerror("错误","不能自己给自己转账！")
+                messagebox.showerror("错误","目标账户不存在！")
                 transferTop.destroy()
             except OverflowError:
                 messagebox.showerror("错误","转账金额大于账户余额！")
@@ -208,7 +209,7 @@ def login(userAccount):
                 depositTop.destroy()
         # 存款窗口
         depositTop = Toplevel(root)
-        depositTop.title("取款")
+        depositTop.title("存款")
         width = 250
         height = 100
         centerX = int(window_width / 2 - width / 2)
@@ -259,8 +260,8 @@ def login(userAccount):
         confirm_button.place(x=68, y=58)
     # 建立查余额按钮
     global checkBalanceBtn
-    checkBalaneBtn = tk.Button(root,
-                                 text="查询余额\nBalance iquiry",
+    checkBalanceBtn = tk.Button(root,
+                                 text="查询余额\nBalance inquiry",
                                  width=20,
                                  height=5,
                                  bd=2, padx=10,
@@ -268,7 +269,7 @@ def login(userAccount):
                                  font=('宋体', 15, 'bold'),
                                  overrelief='sunken',
                                  command=checkBalance)
-    checkBalaneBtn.place(x=100, y=380)  # 查询余额按钮加入视窗
+    checkBalanceBtn.place(x=100, y=380)  # 查询余额按钮加入视窗
     # 建立取款按钮
     global withdrawalBtn
     withdrawalBtn = tk.Button(root,
@@ -296,7 +297,7 @@ def login(userAccount):
     # 建立退出按钮
     global goBackBtn
     goBackBtn = tk.Button(root,
-                           text="退出\nExit",
+                           text="登出\nLogout",
                            width=20,
                            height=5,
                            bd=2, padx=10,
@@ -340,7 +341,7 @@ def signIn():
             messagebox.showwarning('错误', '您的密码不足六位！')
             signIn()
         elif bank.verify(userAccount, userPassword):
-            messagebox.showinfo('登入', f'账户：{userAccount}\n登入成功！')
+            messagebox.showinfo('登入', f'账户：{userAccount}\n登入成功！\n请确保周边环境安全再进行操作！')
             signInTop.destroy()
             createAccountBtn.destroy()
             signInBtn.destroy()
@@ -349,7 +350,7 @@ def signIn():
             messagebox.showwarning('错误', '您输入的账号不存在或密码错误！\n请重新输入')
             signIn()
     signInTop = Toplevel(root)
-    signInTop.title("登录")
+    signInTop.title("登入")
     width = 300
     height = 150
     centerX = int(window_width / 2 - width / 2)
@@ -362,13 +363,13 @@ def signIn():
     signInLabel2 = Label(signInTop, text="请输入密码：").pack()
     signInEntryPassword=Entry(signInTop,show='*')
     signInEntryPassword.pack()
-    confirm_button = Button(signInTop, text="登录",width=15, command=signInVerify) #确认按钮
+    confirm_button = Button(signInTop, text="登入",width=15, command=signInVerify) #确认按钮
     confirm_button.place(x=90, y=100)
 def mainWindow(): # 主窗口部分
     global root
     root = tk.Tk()  # 建立Tkinter视窗
     root.resizable(width=False, height=False) #不允许改变窗口大小
-    root.title('BaiyunUniversity Bank System')  # 设置窗口标题
+    root.title('Baiyun University Bank System')  # 设置窗口标题
     root.iconbitmap('./images/favicon.ico')  # 设置窗口icon
     global window_width,window_height
     window_width = root.winfo_screenwidth()  # 取得屏幕宽度
@@ -416,7 +417,7 @@ def mainWindow(): # 主窗口部分
     # 登录按钮
     global signInBtn
     signInBtn = tk.Button(root,
-                       text="登录\nSign In",
+                       text="登入\nSign In",
                        width=20,
                           height=5,
                           bd=2,

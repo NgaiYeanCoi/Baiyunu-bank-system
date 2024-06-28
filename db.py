@@ -4,11 +4,12 @@ import os
 class Database:
     """
     数据存储模块，使用 csv 格式进行存储
+    格式：key,value1,value2,value3...
     """
     def __init__(self, filename):
         """
         创建对象并加载 filename 对应的文件的数据
-        :param filename:
+        :param filename: 文件名/路径
         """
         self.__filename = filename
         self.__table = {}
