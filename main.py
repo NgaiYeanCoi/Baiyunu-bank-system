@@ -10,7 +10,7 @@ from PIL import Image, ImageTk
 import time,re
 from bank import bank, AccountLockedError
 
-clockImg = None
+#clockImg = None
 
 
 ## GUI的部分
@@ -345,6 +345,9 @@ def signIn():
             signInTop.destroy()
             createAccountBtn.destroy()
             signInBtn.destroy()
+            canvasRoot.delete(UnionPay_id)
+            canvasRoot.delete(Visa_id)
+            canvasRoot.delete(JCB_id)
             login(userAccount)
         else:
             messagebox.showwarning('错误', '您输入的账号不存在或密码错误！\n请重新输入')
@@ -414,6 +417,19 @@ def mainWindow(): # 主窗口部分
     clockImg=processImageWithTransparency('./images/clock-solid.png', 24, 24, (0, 0, 0), (255, 255, 255))
     labelClock = Label(root, image=clockImg)
     labelClock.place(x=0, y=568)
+    global UnionPayImg,UnionPay_id,MasterCardImg,MasterCard_id,JCBImg,JCB_id,VisaImg,Visa_id
+    # 插入银联图片
+    UnionPayImg = getImage('./images/UnionPay.png',width=65, height=41)
+    UnionPay_id=canvasRoot.create_image(730, 470,image=UnionPayImg)
+    # 插入Visa图片
+    VisaImg = getImage('./images/Visa.png', width=65, height=41)
+    Visa_id = canvasRoot.create_image(810, 470, image=VisaImg)
+    # 插入万事达图片
+    MasterCardImg = getImage('./images/MasterCard.png', width=65, height=41)
+    MasterCard_id = canvasRoot.create_image(890, 470, image=MasterCardImg)
+    # 插入JCB图片
+    JCBImg = getImage('./images/JCB.png', width=65, height=41)
+    JCB_id = canvasRoot.create_image(970, 470, image=JCBImg)
     # 登录按钮
     global signInBtn
     signInBtn = tk.Button(root,
