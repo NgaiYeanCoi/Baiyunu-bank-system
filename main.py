@@ -14,6 +14,10 @@ from bank import bank, AccountLockedError
 
 
 ## GUI的部分
+def modalWindows(TopId): # 使窗口模态
+    TopId.grab_set()
+    TopId.focus_set()  # 确保模态窗口获得焦点
+    TopId.transient(root)  # 设置为主窗口的临时窗口
 def callback(): #是否退出询问方框
     if messagebox.askyesno('退出系统', '您真的要退出白云银行管理系统吗？'):
         root.destroy() #关闭窗口
@@ -90,6 +94,7 @@ def createAccount():  # 开户函数
     confirm_button.place(x=100, y=100)
     delete_button = Button(top, text="重置", command=createClear) #清除按钮
     delete_button.place(x=150, y=100)
+    modalWindows(top)
 def login(userAccount):
     # 建立标题
     canvasRoot.create_text(550, 120, text='请选择业务', font=('宋体', 25, 'bold', 'bold'), fill='white')
@@ -157,6 +162,7 @@ def login(userAccount):
         confirm_button.place(x=60, y=150)
         delete_button = Button(changePasswordTop, text="重置", width=5,command=changePasswordClear)  # 清除按钮
         delete_button.place(x=145, y=150)
+        modalWindows(changePasswordTop)
     def transfer():
         def onConfirm():
             transferDesAccount=transferEntryDesAccount.get()
@@ -195,6 +201,7 @@ def login(userAccount):
         transferEntryAmount.pack()
         confirm_button = Button(transferTop, text="确认", width=15, command=onConfirm)  # 确认按钮
         confirm_button.place(x=90, y=100)
+        modalWindows(transferTop)
     def deposit(): # 存款函数
         def depositFunc():
             # 获取交易前余额
@@ -222,6 +229,7 @@ def login(userAccount):
         depositTopEntryAmount.pack()
         confirm_button = Button(depositTop, text="确认", width=15, command=depositFunc)  # 确认按钮
         confirm_button.place(x=68, y=58)
+        modalWindows(depositTop)
     def checkBalance():  # 查余额函数
         messagebox.showinfo('查询余额',f'您的账户{userAccount}'
                                           f'\n余额为：{bank.getBalance(userAccount)}元'
@@ -258,6 +266,7 @@ def login(userAccount):
         withdrawalEntryAmount.pack()
         confirm_button = Button(withdrawalTop, text="确认", width=15, command=withdrawalFunc)  # 确认按钮
         confirm_button.place(x=68, y=58)
+        modalWindows(withdrawalTop)
     # 建立查余额按钮
     global checkBalanceBtn
     checkBalanceBtn = tk.Button(root,
@@ -368,6 +377,8 @@ def signIn():
     signInEntryPassword.pack()
     confirm_button = Button(signInTop, text="登入",width=15, command=signInVerify) #确认按钮
     confirm_button.place(x=90, y=100)
+    #使窗口模态化
+    modalWindows(signInTop)
 def mainWindow(): # 主窗口部分
     global root
     root = tk.Tk()  # 建立Tkinter视窗
