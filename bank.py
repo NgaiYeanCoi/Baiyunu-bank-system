@@ -5,9 +5,11 @@ from decimal import Decimal
 # 存储格式
 # 账号(数字),密码(六位数字),余额(浮点数，精确到小数点后两位),账号是否锁定(布尔值)
 
+
 class AccountLockedError(Exception):
     def __init__(self, msg):
         super(Exception, self).__init__(msg)
+
 
 class Account:
     def __init__(self, password, balance, locked):
@@ -25,6 +27,7 @@ class Account:
 
     def serialize(self):
         return [self.password, self.balance, self.locked]
+
 
 class Bank:
     def __init__(self):
@@ -119,7 +122,7 @@ class Bank:
         destAccount = self.__convertAccount(dest)
         amount = Bank.__convertAmount(amount)
         if srcAccount.locked:
-            raise AccountLockedError("账号 " + source + " 已被锁定！")
+            raise AccountLockedError(f"账号 {source} 已被锁定！")
         if amount > srcAccount.balance:
             raise OverflowError(f"转账金额 {amount} 大于当前账户余额 {srcAccount.balance}！")
         srcAccount.balance -= amount
@@ -170,5 +173,6 @@ class Bank:
         if d <= 0:
             raise ValueError(f"金额 {amount} 必须是正数！")
         return d
+
 
 bank = Bank()

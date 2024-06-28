@@ -104,37 +104,37 @@ def login(userAccount):
         else:
             return
     def changePassword():
-        def  changePasswordFunc():
+        def changePasswordFunc():
+            userPasswordOld = changePasswordTopEntryPre.get()
             userPasswordNew = changePasswordTopEntryNew.get()
-            userPasswordComfirm = changePasswordTopEntryComfirm.get()
-            if not re.match(r"^\d{6}$", userPasswordComfirm):
+            userPasswordConfirm = changePasswordTopEntryConfirm.get()
+            if not re.match(r"^\d{6}$", userPasswordConfirm):
                 messagebox.showwarning('错误', f'您输入的密码必须是六位整数！')
                 changePasswordTop.destroy()
                 changePassword()
+            elif userPasswordNew != userPasswordConfirm:
+                messagebox.showwarning('错误', f'您输入的新密码不一致！')
+                changePasswordTop.destroy()
+                changePassword()
+            elif userPasswordOld == userPasswordNew:
+                messagebox.showwarning('错误', '新密码与旧密码相同')
+                changePasswordTop.destroy()
+                changePassword()
+            elif bank.verify(userAccount, userPasswordOld):
+                bank.resetPassword(userAccount, userPasswordNew)
+                messagebox.showinfo('成功', f'您的账户：{userAccount}\n密码修改成功\n请务必记住新的密码记住！')
+                # userPasswordConfirm=changePasswordTopEntryNew.get()
+                changePasswordTop.destroy()  # 密码一致时关闭弹出窗口
             else:
-                if userPasswordNew != userPasswordComfirm:
-                    messagebox.showwarning('错误', f'您输入的新密码不一致！')
-                    changePasswordTop.destroy()
-                    changePassword()
-                elif changePasswordTopEntryNew.get() == changePasswordTopEntryPre.get():
-                    messagebox.showwarning('错误', '新密码与旧密码相同')
-                    changePasswordTop.destroy()
-                    changePassword()
-                elif bank.verify(userAccount, changePasswordTopEntryNew):
-                    messagebox.showwarning('错误', '您输入的旧密码错误')
-                    changePasswordTop.destroy()
-                    changePassword()
-                else:
-                    bank.resetPassword(userAccount,userPasswordNew)
-                    messagebox.showinfo('成功', f'您的账户：{userAccount}\n密码修改成功\n请务必记住新的密码记住！')
-                    userPasswordComfirm=changePasswordTopEntryNew.get()
-                    changePasswordTop.destroy()  # 密码一致时关闭弹出窗口
+                messagebox.showwarning('错误', '您输入的旧密码错误')
+                changePasswordTop.destroy()
+                changePassword()
 
 
         def changePasswordClear():
             changePasswordTopEntryPre.delete(0, 'end')
             changePasswordTopEntryNew.delete(0, 'end')
-            changePasswordTopEntryComfirm.delete(0,'end')
+            changePasswordTopEntryConfirm.delete(0,'end')
         # 改密码窗口
         changePasswordTop = Toplevel(root)
         changePasswordTop.title("修改密码")
@@ -154,8 +154,8 @@ def login(userAccount):
         changePasswordTopEntryNew.pack()
         changePasswordTopLabel3 = Label(changePasswordTop, text="请再次输入新密码")
         changePasswordTopLabel3.pack()
-        changePasswordTopEntryComfirm = Entry(changePasswordTop,show='*') #确认密码表单
-        changePasswordTopEntryComfirm.pack()
+        changePasswordTopEntryConfirm = Entry(changePasswordTop,show='*') #确认密码表单
+        changePasswordTopEntryConfirm.pack()
         confirm_button = Button(changePasswordTop, text="确认", width=5,command=changePasswordFunc)  # 确认按钮
         confirm_button.place(x=60, y=150)
         delete_button = Button(changePasswordTop, text="重置", width=5,command=changePasswordClear)  # 清除按钮

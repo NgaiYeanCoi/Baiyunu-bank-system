@@ -58,4 +58,3 @@ class Database:
                     f.write(",")
                     f.write(str(item))
                 f.write('\n')
-
