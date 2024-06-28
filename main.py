@@ -104,22 +104,22 @@ def login(userAccount):
         else:
             return
     def changePassword():
+        def changePasswordError():
+            changePasswordTop.destroy()
+            changePassword()
         def changePasswordFunc():
             userPasswordOld = changePasswordTopEntryPre.get()
             userPasswordNew = changePasswordTopEntryNew.get()
             userPasswordConfirm = changePasswordTopEntryConfirm.get()
             if not re.match(r"^\d{6}$", userPasswordConfirm):
                 messagebox.showwarning('错误', f'您输入的密码必须是六位整数！')
-                changePasswordTop.destroy()
-                changePassword()
+                changePasswordError()
             elif userPasswordNew != userPasswordConfirm:
                 messagebox.showwarning('错误', f'您输入的新密码不一致！')
-                changePasswordTop.destroy()
-                changePassword()
+                changePasswordError()
             elif userPasswordOld == userPasswordNew:
                 messagebox.showwarning('错误', '新密码与旧密码相同')
-                changePasswordTop.destroy()
-                changePassword()
+                changePasswordError()
             elif bank.verify(userAccount, userPasswordOld):
                 bank.resetPassword(userAccount, userPasswordNew)
                 messagebox.showinfo('成功', f'您的账户：{userAccount}\n密码修改成功\n请务必记住新的密码记住！')
@@ -127,8 +127,7 @@ def login(userAccount):
                 changePasswordTop.destroy()  # 密码一致时关闭弹出窗口
             else:
                 messagebox.showwarning('错误', '您输入的旧密码错误')
-                changePasswordTop.destroy()
-                changePassword()
+                changePasswordError()
 
 
         def changePasswordClear():
@@ -161,7 +160,40 @@ def login(userAccount):
         delete_button = Button(changePasswordTop, text="重置", width=5,command=changePasswordClear)  # 清除按钮
         delete_button.place(x=145, y=150)
     def transfer():
-        pass
+        def onConfirm():
+            transferDesAccount=transferEntryDesAccount.get()
+            transferAmount=transferEntryAmount.get()
+            try:
+                bank.transfer(userAccount,transferDesAccount,transferAmount)
+                messagebox.showinfo("转账",f"交易成功！\n您当前的余额为：{bank.getBalance(userAccount)}")
+            except KeyError:
+                messagebox.showerror("错误","不能自己给自己转账！")
+                transferTop.destroy()
+            except OverflowError:
+                messagebox.showerror("错误","转账金额大于账户余额！")
+                transferTop.destroy()
+            except ValueError:
+                messagebox.showwarning('错误', f'取款金额不合法请重新输入')
+                transferTop.destroy()
+            except AccountLockedError:
+                messagebox.showwarning('错误', f'账户已被锁定！')
+                transferTop.destroy()
+        transferTop = Toplevel(root)
+        transferTop.title("转账")
+        width = 300
+        height = 150
+        centerX = int(window_width / 2 - width / 2)
+        centerY = int(window_height / 2 - height / 2)
+        transferTop.resizable(width=False, height=False)  # 不允许改变窗口大小
+        transferTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+        transferLabel = Label(transferTop, text="目标账号：").pack()
+        transferEntryDesAccount = Entry(transferTop)
+        transferEntryDesAccount.pack()
+        transferLabel2 = Label(transferTop, text="金额：").pack()
+        transferEntryAmount = Entry(transferTop)
+        transferEntryAmount.pack()
+        confirm_button = Button(transferTop, text="确认", width=15, command=onConfirm)  # 确认按钮
+        confirm_button.place(x=90, y=100)
     def deposit(): # 存款函数
         def depositFunc():
             # 获取交易前余额
@@ -361,6 +393,7 @@ def mainWindow(): # 主窗口部分
     # canvasBankUnionPay.place(x=0, y=0)
     # 建立标题
     canvasRoot.create_text(550, 50, text='白云学院银行管理系统', font=('宋体', 50, 'bold', 'italic'), fill='white')
+    canvasRoot.create_text(550, 580, text='您的财富由我们掌控！', font=('宋体', 15, 'bold', 'italic'), fill='white')
     # 嵌入时间窗口
     updateTime()
     # 建立开户按钮
