@@ -8,3 +8,9 @@ Baiyunu-bank-system使用LGPL作为开源协议。使用前请注明该开源项
 ```bash
 pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 ```
+
+# Baiyunu-bank-system项目贡献者
+以github名称及相关开源平台昵称为名。
+## canyie | NgaiYeanCoi
+Baiyunu-bank-system发起人以及版权所有者，主要贡献者、维护者。
+全权参与Baiyunu-bank-system的维护和开发。
