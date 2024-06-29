@@ -18,8 +18,26 @@ keypadButtons = [
     ('1', 1, 0), ('2', 1, 1), ('3', 1, 2),
     ('4', 2, 0), ('5', 2, 1), ('6', 2, 2),
     ('7', 3, 0), ('8', 3, 1), ('9', 3, 2),
-    ('C', 4, 0), ('0', 4, 1), ('←', 4, 2)
+    ('C', 4, 0), ('0', 4, 1), ('←', 4, 2),
+    ('.', 5, 0)
 ]
+NoPointKeypadButtons = [
+    ('1', 1, 0), ('2', 1, 1), ('3', 1, 2),
+    ('4', 2, 0), ('5', 2, 1), ('6', 2, 2),
+    ('7', 3, 0), ('8', 3, 1), ('9', 3, 2),
+    ('C', 4, 0), ('0', 4, 1), ('←', 4, 2),
+]
+def addNoPointicKeypad(window):
+    frame = tk.Frame(window)
+    frame.pack()
+    for (text, row, col) in NoPointKeypadButtons:
+        if text == 'C':
+            btn = tk.Button(frame, text=text, font=('Helvetica', 16), command=clearEntry)
+        elif text == '←':
+            btn = tk.Button(frame, text=text, font=('Helvetica', 16), command=backspaceEntry)
+        else:
+            btn = tk.Button(frame, text=text, font=('Helvetica', 16), command=lambda t=text: insertNumber(t))
+        btn.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
 # 窗口根布局
 root: tk.Tk
 # 窗口根画布
@@ -127,9 +145,9 @@ def newWindow(title, width, height):
     return window
 
 
-def mainButton(text, x, y, command, bg='#ffffff'):
+def mainButton(text, x, y, command, bg='#ffffff',activebackground='#026dbd'):
     btn = tk.Button(root, text=text, width=20, height=5, bd=2, padx=10, bg=bg,
-                    activebackground='#026dbd', font=('宋体', 15, 'bold'), overrelief='sunken',
+                    activebackground=activebackground, font=('宋体', 15, 'bold'), overrelief='sunken',
                     command=command)
     btn.place(x=x, y=y)
     return btn
@@ -162,7 +180,7 @@ def createAccount():  # 开户函数
     Label(window, text="请再次输入密码：").pack()
     createAccountEntry2 = createPasswordEntry(window)
     bindFocusableWindow(window)
-    addNumericKeypad(window)
+    addNoPointicKeypad(window)
     Button(window, text="确认", width=15, height=2, command=createCheckPasswords).pack()  # 确认按钮
 
 
@@ -204,7 +222,7 @@ def login(userAccount):
             setActiveEntry(None)
 
         # 改密码窗口
-        window = newWindow("修改密码", 250, 500)
+        window = newWindow("修改密码", 280, 480)
         Label(window, text="请输入旧密码").pack()
         changePasswordTopEntryPre = createPasswordEntry(window)
         Label(window, text="请输入新密码").pack()
@@ -212,7 +230,7 @@ def login(userAccount):
         Label(window, text="请再次输入新密码").pack()
         changePasswordTopEntryConfirm = createPasswordEntry(window)
         # 数字键盘
-        addNumericKeypad(window)
+        addNoPointicKeypad(window)
         Button(window, text="确认", width=15, height=2, command=changePasswordFunc).pack()  # 确认按钮
 
     def transfer():
@@ -236,14 +254,14 @@ def login(userAccount):
             window.destroy()
             setActiveEntry(None)
 
-        window = newWindow("转账", 300, 450)
+        window = newWindow("转账", 300, 480)
         Label(window, text="目标账号：").pack()
         transferEntryDesAccount = createEntry(window)
         Label(window, text="金额：").pack()
         transferEntryAmount = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        Button(window, text="确认", width=15, height=2, command=onConfirm).pack()  # 确认按钮
+        Button(window, text="确认", width=16, height=3, command=onConfirm).place(x=120, y=380)  # 确认按钮
 
     def deposit():  # 存款函数
         def depositFunc():
@@ -260,13 +278,13 @@ def login(userAccount):
             setActiveEntry(None)
 
         # 存款窗口
-        window = newWindow("存款", 250, 400)
+        window = newWindow("存款", 300, 430)
         Label(window, text="请输入存款金额").pack()
         global depositAmountEntry
         depositAmountEntry = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        Button(window, text="确认", width=15, height=2, command=depositFunc).pack()  # 确认按钮
+        Button(window, text="确认", width=16, height=3, command=depositFunc).place(x=120, y=335)  # 确认按钮
 
     def checkBalance():  # 查余额函数
         locked = "已锁定" if bank.getLockState(userAccount) else "未锁定"
@@ -291,25 +309,27 @@ def login(userAccount):
             setActiveEntry(None)
 
         # 取款窗口
-        window = newWindow("取款", 250, 400)
+        window = newWindow("取款", 300, 430)
         Label(window, text="请输入取款金额").pack()
         withdrawalEntryAmount = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        Button(window, text="确认", width=15, height=2, command=withdrawalFunc).pack()  # 确认按钮
+        Button(window, text="确认", width=16, height=3, command=withdrawalFunc).place(x=120,y=335)  # 确认按钮
 
-    mainButton("查询余额\nBalance Inquiry", 100, 380, checkBalance)  # 建立查余额按钮
-    mainButton("取款\nWithdrawal", 100, 200, withdrawal)  # 建立取款按钮
-    mainButton("存款\nDeposit", 390, 200, deposit)  # 建立存款按钮
-    mainButton("登出\nLogout", 680, 380, goBack, '#026dbd')  # 建立登出按钮
-    mainButton("转账\nTransfer", 680, 200, transfer)  # 建立转账按钮
-    mainButton("修改密码\nChange Password", 390, 380, changePassword)  # 建立修改密码
+    #建立登入后的按钮
+    mainButton("查询余额\nBalance Inquiry", 125, 380, checkBalance)  # 建立查余额按钮
+    mainButton("取款\nWithdrawal", 125, 200, withdrawal)  # 建立取款按钮
+    mainButton("存款\nDeposit", 415, 200, deposit)  # 建立存款按钮
+    mainButton("登出\nLogout", 705, 380, goBack, '#026dbd','#ffffff')  # 建立登出按钮
+    mainButton("转账\nTransfer", 705, 200, transfer)  # 建立转账按钮
+    mainButton("修改密码\nChange Password", 415, 380, changePassword)  # 建立修改密码
 
 
 def signIn():
     def signInVerify():
         userPassword = signInEntryPassword.get()
         userAccount = signInEntryAccount.get()
+        #login('1') ####前端调试用 不删
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不是六位！')
             signIn()
@@ -326,14 +346,14 @@ def signIn():
         window.destroy()
         setActiveEntry(None)
 
-    window = newWindow("登入", 300, 450)
+    window = newWindow("登入", 300, 460)
     Label(window, text="请输入账号：").pack()
     signInEntryAccount = createEntry(window)
     Label(window, text="请输入密码：").pack()
     signInEntryPassword = createPasswordEntry(window)
     # 数字键盘
     addNumericKeypad(window)
-    Button(window, text="登入", width=15, height=2, command=signInVerify).pack()  # 确认按钮
+    Button(window, text="登入", width=16, height=3, command=signInVerify).place(x=120,y=380)  # 确认按钮
 
 
 def mainWindow():  # 主窗口部分
@@ -350,7 +370,6 @@ def mainWindow():  # 主窗口部分
     centerY = int((windowHeight - height) / 2)  # 计算上坐标 以保证在中间显示
     root.geometry(f'{width}x{height}+{centerX}+{centerY}')  # 定义视窗大小
     root.protocol("WM_DELETE_WINDOW", onExit)
-
     canvasRoot = tk.Canvas(root, width=width, height=height)
     backgroundImg = getImage('./images/bg.png', width=width, height=height)
     canvasRoot.create_image(550, 300, image=backgroundImg)
