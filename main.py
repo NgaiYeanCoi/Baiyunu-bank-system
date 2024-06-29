@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: UTF-8 -*-
 
-' Baiyun University bank system '
+""" Baiyun University bank system """
 __author__ = 'NgaiYeanCoi', 'canyie'
 
 import tkinter as tk
@@ -27,19 +27,37 @@ def set_active_entry(entry_widget):
     global active_entry
     active_entry = entry_widget
 def backspace_entry(): #退格方法
-    if active_entry:
+    if active_entry and active_entry.winfo_exists():
         active_entry.delete(len(active_entry.get())- 1, tk.END)
 def insert_number(number): #输入数字方法
-    if active_entry:
+    if active_entry and active_entry.winfo_exists():
         active_entry.insert(tk.END, number)
 def clear_entry(): #清空方法
-    if active_entry:
+    if active_entry and active_entry.winfo_exists():
         active_entry.delete(0, tk.END)
 
 def modalWindows(TopId): # 使窗口模态
     TopId.grab_set()
     TopId.focus_set()  # 确保模态窗口获得焦点
     TopId.transient(root)  # 设置为主窗口的临时窗口
+
+def bindFocusableWindow(window):
+    def onClose():
+        window.destroy()
+        set_active_entry(None)
+    window.protocol("WM_DELETE_WINDOW", onClose)
+
+def createEntry(window, **args):
+    entry = Entry(window, **args)
+    entry.pack()
+    entry.bind("<FocusIn>", lambda event: set_active_entry(entry))  # 跟踪当前活跃
+    entry.bind("<FocusOut>", lambda event: set_active_entry(None))
+    bindFocusableWindow(root)
+    return entry
+
+def createPasswordEntry(window):
+    return createEntry(window, show="*")
+
 def callback(): #是否退出询问方框
     if messagebox.askyesno('退出系统', '您真的要退出白云银行管理系统吗？'):
         root.destroy() #关闭窗口
@@ -77,20 +95,18 @@ def updateTime(): #时间模块
     label_time.after(1000,updateTime)
 def createAccount():  # 开户函数
     def createCheckPasswords():
-        if createAccountEntry1.get() != createAccountEntry2.get():
+        userPassword = createAccountEntry1.get()
+        if userPassword != createAccountEntry2.get():
             messagebox.showwarning('错误', '你输入的密码不一致')
-            top.destroy()
+            createAccount()
+        elif not re.match(r"^\d{6}$", userPassword):
+            messagebox.showwarning('错误', f'您输入的密码必须是六位整数！')
             createAccount()
         else:
-            userPassword=createAccountEntry1.get()
-            if not re.match(r"^\d{6}$", userPassword):
-                messagebox.showwarning('错误',f'您输入的密码必须是六位整数！')
-                top.destroy()
-                createAccount()
-            else:
-                account = bank.createAccount(userPassword)
-                messagebox.showinfo('成功', f'密码输入一致，开户成功，你的银行账号是：{account}\n请务必记住！')
-                top.destroy()  # 密码一致时关闭弹出窗口
+            account = bank.createAccount(userPassword)
+            messagebox.showinfo('成功', f'密码输入一致，开户成功，你的银行账号是：{account}\n请务必记住！')
+        top.destroy()
+        set_active_entry(None)
     def createClear():
         createAccountEntry1.delete(0,'end')
         createAccountEntry2.delete(0, 'end')
@@ -108,13 +124,10 @@ def createAccount():  # 开户函数
     top.geometry(f"{width}x{height}+{centerX}+{centerY}")
     top.iconbitmap('./images/favicon.ico')  # 设置窗口icon
     createAccountLabel1 = Label(top, text="请输入密码：").pack()
-    createAccountEntry1 = Entry(top, show="*")
-    createAccountEntry1.pack()
-    createAccountEntry1.bind("<FocusIn>", lambda event: set_active_entry(createAccountEntry1))  # 跟踪当前活跃
+    createAccountEntry1 = createPasswordEntry(top)
     createAccountLabel2 = Label(top, text="请再次输入密码：").pack()
-    createAccountEntry2 = Entry(top, show="*")
-    createAccountEntry2.pack()
-    createAccountEntry2.bind("<FocusIn>", lambda event: set_active_entry(createAccountEntry2))  # 跟踪当前活跃
+    createAccountEntry2 = createPasswordEntry(top)
+    bindFocusableWindow(top)
     # 数字键盘
     button_frame = tk.Frame(top)
     button_frame.pack()
@@ -139,12 +152,9 @@ def login(userAccount):
     canvasRoot.create_text(550, 120, text='请选择业务', font=('宋体', 25, 'bold', 'bold'), fill='white')
     canvasRoot.create_text(550, 150, text='Please select next step', font=('宋体', 20, 'bold', 'italic'),fill='white')
     def goBack():
-        loginExit=messagebox.askokcancel('登出账户','是否要退出？')
-        if loginExit== True:
+        if messagebox.askokcancel('登出账户','是否要登出？'):
             root.destroy()
             mainWindow()
-        else:
-            return
     def changePassword():
         def changePasswordError():
             changePasswordTop.destroy()
@@ -170,7 +180,7 @@ def login(userAccount):
             else:
                 messagebox.showwarning('错误', '您输入的旧密码错误')
                 changePasswordError()
-
+            set_active_entry(None)
 
         def changePasswordClear():
             changePasswordTopEntryPre.delete(0, 'end')
@@ -188,19 +198,13 @@ def login(userAccount):
         changePasswordTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
         changePasswordTopLabel1 = Label(changePasswordTop, text="请输入旧密码")
         changePasswordTopLabel1.pack()
-        changePasswordTopEntryPre = Entry(changePasswordTop,show='*') #旧密码表单
-        changePasswordTopEntryPre.pack()
-        changePasswordTopEntryPre.bind("<FocusIn>", lambda event: set_active_entry(changePasswordTopEntryPre))  # 跟踪当前活跃
+        changePasswordTopEntryPre = createPasswordEntry(changePasswordTop) # 跟踪当前活跃
         changePasswordTopLabel2 = Label(changePasswordTop, text="请输入新密码")
         changePasswordTopLabel2.pack()
-        changePasswordTopEntryNew = Entry(changePasswordTop,show='*') #新密码表单
-        changePasswordTopEntryNew.pack()
-        changePasswordTopEntryNew.bind("<FocusIn>", lambda event: set_active_entry(changePasswordTopEntryNew))  # 跟踪当前活跃
+        changePasswordTopEntryNew = createPasswordEntry(changePasswordTop)
         changePasswordTopLabel3 = Label(changePasswordTop, text="请再次输入新密码")
         changePasswordTopLabel3.pack()
-        changePasswordTopEntryConfirm = Entry(changePasswordTop,show='*') #确认密码表单
-        changePasswordTopEntryConfirm.pack()
-        changePasswordTopEntryConfirm.bind("<FocusIn>", lambda event: set_active_entry(changePasswordTopEntryConfirm))  # 跟踪当前活跃
+        changePasswordTopEntryConfirm = createPasswordEntry(changePasswordTop)
         # 数字键盘
         button_frame = tk.Frame(changePasswordTop)
         button_frame.pack()
@@ -226,19 +230,16 @@ def login(userAccount):
             try:
                 bank.transfer(userAccount,transferDesAccount,transferAmount)
                 messagebox.showinfo("转账",f"交易成功！\n您当前的余额为：{bank.getBalance(userAccount)}")
-                transferTop.destroy()
             except KeyError:
                 messagebox.showerror("错误","目标账户不存在！")
-                transferTop.destroy()
             except OverflowError:
                 messagebox.showerror("错误","转账金额大于账户余额！")
-                transferTop.destroy()
             except ValueError:
                 messagebox.showwarning('错误', f'取款金额不合法请重新输入')
-                transferTop.destroy()
             except AccountLockedError:
                 messagebox.showwarning('错误', f'账户已被锁定！')
-                transferTop.destroy()
+            transferTop.destroy()
+            set_active_entry(None)
         transferTop = Toplevel(root)
         transferTop.title("转账")
         width = 300
@@ -249,13 +250,9 @@ def login(userAccount):
         transferTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
         transferTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
         transferLabel = Label(transferTop, text="目标账号：").pack()
-        transferEntryDesAccount = Entry(transferTop)
-        transferEntryDesAccount.pack()
-        transferEntryDesAccount.bind("<FocusIn>", lambda event: set_active_entry(transferEntryDesAccount)) #跟踪当前活跃
+        transferEntryDesAccount = createEntry(transferTop)
         transferLabel2 = Label(transferTop, text="金额：").pack()
-        transferEntryAmount = Entry(transferTop)
-        transferEntryAmount.pack()
-        transferEntryAmount.bind("<FocusIn>", lambda event: set_active_entry(transferEntryAmount))
+        transferEntryAmount = createEntry(transferTop)
         # 数字键盘
         button_frame = tk.Frame(transferTop)
         button_frame.pack()
@@ -279,10 +276,10 @@ def login(userAccount):
             try:
                 bank.makeDeposit(userAccount,userAmount)
                 messagebox.showinfo('存款',f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{bank.getBalance(userAccount)}元')
-                depositTop.destroy()
             except ValueError:
                 messagebox.showwarning('错误', f'取款金额不合法请重新输入')
-                depositTop.destroy()
+            depositTop.destroy()
+            set_active_entry(None)
         # 存款窗口
         depositTop = Toplevel(root)
         depositTop.title("存款")
@@ -296,9 +293,7 @@ def login(userAccount):
         depositTopLabel1 = Label(depositTop, text="请输入存款金额")
         depositTopLabel1.pack()
         global depositTopEntryAmount
-        depositTopEntryAmount = Entry(depositTop)
-        depositTopEntryAmount.pack()
-        depositTopEntryAmount.bind("<FocusIn>", lambda event: set_active_entry(depositTopEntryAmount))  # 跟踪当前活跃
+        depositTopEntryAmount = createEntry(depositTop)
         # 数字键盘
         button_frame = tk.Frame(depositTop)
         button_frame.pack()
@@ -325,16 +320,14 @@ def login(userAccount):
             try:
                 bank.withdrawal(userAccount,userAmount)
                 messagebox.showinfo('取款', f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{bank.getBalance(userAccount)}元')
-                withdrawalTop.destroy()
             except AccountLockedError:
                 messagebox.showwarning('错误',f'账户{userAccount}\n已被锁定')
-                withdrawalTop.destroy()
             except OverflowError:
                 messagebox.showwarning('错误', f'取款金额不得大于账户余额\n账户：{userAccount}\n您的当前余额为{bank.getBalance(userAccount)}元')
-                withdrawalTop.destroy()
             except ValueError:
                 messagebox.showwarning('错误', f'取款金额不合法请重新输入')
-                withdrawalTop.destroy()
+            withdrawalTop.destroy()
+            set_active_entry(None)
         #取款窗口
         withdrawalTop = Toplevel(root)
         withdrawalTop.title("取款")
@@ -347,9 +340,7 @@ def login(userAccount):
         withdrawalTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
         withdrawalLabel1 = Label(withdrawalTop, text="请输入取款金额")
         withdrawalLabel1.pack()
-        withdrawalEntryAmount = Entry(withdrawalTop)
-        withdrawalEntryAmount.pack()
-        withdrawalEntryAmount.bind("<FocusIn>", lambda event: set_active_entry(withdrawalEntryAmount))  # 跟踪当前活跃Entry
+        withdrawalEntryAmount = createEntry(withdrawalTop)
         # 数字键盘
         button_frame = tk.Frame(withdrawalTop)
         button_frame.pack()
@@ -447,19 +438,18 @@ def signIn():
         #login(userAccount)##########调试用
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不足六位！')
-            signInTop.destroy()
             signIn()
         elif bank.verify(userAccount, userPassword):
             messagebox.showinfo('登入', f'账户：{userAccount}\n登入成功！\n请确保周边环境安全再进行操作！')
-            signInTop.destroy()
             createAccountBtn.destroy()
             signInBtn.destroy()
             canvasRoot.delete(UnionPay_id,Visa_id,JCB_id,BaiyunId,txtId1,txtId2)
             login(userAccount)
         else:
             messagebox.showwarning('错误', '您输入的账号不存在或密码错误！\n请重新输入')
-            signInTop.destroy()
             signIn()
+        signInTop.destroy()
+        set_active_entry(None)
     signInTop = Toplevel(root)
     signInTop.title("登入")
     width = 300
@@ -470,13 +460,9 @@ def signIn():
     signInTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
     signInTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
     signInLabel1 = Label(signInTop,text="请输入账号：").pack()
-    signInEntryAccount = Entry(signInTop)
-    signInEntryAccount.pack()
-    signInEntryAccount.bind("<FocusIn>", lambda event: set_active_entry(signInEntryAccount))  # 跟踪当前活跃
+    signInEntryAccount = createEntry(signInTop)
     signInLabel2 = Label(signInTop, text="请输入密码：").pack()
-    signInEntryPassword=Entry(signInTop,show='*')
-    signInEntryPassword.pack()
-    signInEntryPassword.bind("<FocusIn>", lambda event: set_active_entry(signInEntryPassword))  # 跟踪当前活跃
+    signInEntryPassword=createPasswordEntry(signInTop)
     # 数字键盘
     button_frame = tk.Frame(signInTop)
     button_frame.pack()
