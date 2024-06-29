@@ -10,10 +10,32 @@ from PIL import Image, ImageTk
 import time,re
 from bank import bank, AccountLockedError
 
-#clockImg = None
-
-
 ## GUI的部分
+
+
+
+# 创建数字按钮
+buttons = [
+    ('1', 1, 0), ('2', 1, 1), ('3', 1, 2),
+    ('4', 2, 0), ('5', 2, 1), ('6', 2, 2),
+    ('7', 3, 0), ('8', 3, 1), ('9', 3, 2),
+    ('C', 4, 0), ('0', 4, 1), ('←', 4, 2)
+]
+# 当前活跃的Entry控件
+active_entry = None
+def set_active_entry(entry_widget):
+    global active_entry
+    active_entry = entry_widget
+def backspace_entry(): #退格方法
+    if active_entry:
+        active_entry.delete(len(active_entry.get())- 1, tk.END)
+def insert_number(number): #输入数字方法
+    if active_entry:
+        active_entry.insert(tk.END, number)
+def clear_entry(): #清空方法
+    if active_entry:
+        active_entry.delete(0, tk.END)
+
 def modalWindows(TopId): # 使窗口模态
     TopId.grab_set()
     TopId.focus_set()  # 确保模态窗口获得焦点
@@ -50,8 +72,8 @@ def updateTime(): #时间模块
     # time_text = canvasRoot.create_text(160, 570, text='', font=('宋体', 15, 'bold', 'italic'), fill='white')
     # canvasRoot.itemconfig(time_text, text=setTime)  # 更新文本内容
     # canvasRoot.after(1000,updateTime)
-    label_time=tk.Label(root,text=setTime,font=(10),fg='#ffffff', bg='#171717')
-    label_time.place(x=28,y=570)
+    label_time=tk.Label(root,text=setTime,font=(10),fg='#ffffff', bg='#454545')
+    label_time.place(x=5,y=570)
     label_time.after(1000,updateTime)
 def createAccount():  # 开户函数
     def createCheckPasswords():
@@ -77,23 +99,40 @@ def createAccount():  # 开户函数
     top.title('开户')
     # 计算窗口的宽度和高度
     width = 300
-    height = 150
+    height = 450
     # 计算窗口在屏幕上的位置
     centerX = int(window_width / 2 - width / 2)
     centerY = int(window_height / 2 - height / 2)
     top.resizable(width=False, height=False) #不允许改变窗口大小
     # 设置窗口的位置和大小
     top.geometry(f"{width}x{height}+{centerX}+{centerY}")
+    top.iconbitmap('./images/favicon.ico')  # 设置窗口icon
     createAccountLabel1 = Label(top, text="请输入密码：").pack()
     createAccountEntry1 = Entry(top, show="*")
     createAccountEntry1.pack()
+    createAccountEntry1.bind("<FocusIn>", lambda event: set_active_entry(createAccountEntry1))  # 跟踪当前活跃
     createAccountLabel2 = Label(top, text="请再次输入密码：").pack()
     createAccountEntry2 = Entry(top, show="*")
     createAccountEntry2.pack()
-    confirm_button = Button(top, text="确认", command=createCheckPasswords) #确认按钮
-    confirm_button.place(x=100, y=100)
-    delete_button = Button(top, text="重置", command=createClear) #清除按钮
-    delete_button.place(x=150, y=100)
+    createAccountEntry2.bind("<FocusIn>", lambda event: set_active_entry(createAccountEntry2))  # 跟踪当前活跃
+    # 数字键盘
+    button_frame = tk.Frame(top)
+    button_frame.pack()
+    for (text, row, col) in buttons:
+        if text == 'C':
+            button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=clear_entry)
+        elif text == '←':
+            button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=backspace_entry)
+        else:
+            button = tk.Button(button_frame, text=text, font=('Helvetica', 16),
+                               command=lambda t=text: insert_number(t))
+        button.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
+    confirm_button = Button(top, text="确认", width=15, height=2, command=createCheckPasswords)  # 确认按钮
+    confirm_button.pack()
+    # confirm_button = Button(top, text="确认", command=createCheckPasswords) #确认按钮
+    # confirm_button.place(x=100, y=100)
+    # delete_button = Button(top, text="重置", command=createClear) #清除按钮
+    # delete_button.place(x=150, y=100)
     modalWindows(top)
 def login(userAccount):
     # 建立标题
@@ -141,27 +180,41 @@ def login(userAccount):
         changePasswordTop = Toplevel(root)
         changePasswordTop.title("修改密码")
         width = 250
-        height = 200
+        height = 500
         centerX = int(window_width / 2 - width / 2)
         centerY = int(window_height / 2 - height / 2)
         changePasswordTop.resizable(width=False, height=False)  # 不允许改变窗口大小
         changePasswordTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+        changePasswordTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
         changePasswordTopLabel1 = Label(changePasswordTop, text="请输入旧密码")
         changePasswordTopLabel1.pack()
         changePasswordTopEntryPre = Entry(changePasswordTop,show='*') #旧密码表单
         changePasswordTopEntryPre.pack()
+        changePasswordTopEntryPre.bind("<FocusIn>", lambda event: set_active_entry(changePasswordTopEntryPre))  # 跟踪当前活跃
         changePasswordTopLabel2 = Label(changePasswordTop, text="请输入新密码")
         changePasswordTopLabel2.pack()
         changePasswordTopEntryNew = Entry(changePasswordTop,show='*') #新密码表单
         changePasswordTopEntryNew.pack()
+        changePasswordTopEntryNew.bind("<FocusIn>", lambda event: set_active_entry(changePasswordTopEntryNew))  # 跟踪当前活跃
         changePasswordTopLabel3 = Label(changePasswordTop, text="请再次输入新密码")
         changePasswordTopLabel3.pack()
         changePasswordTopEntryConfirm = Entry(changePasswordTop,show='*') #确认密码表单
         changePasswordTopEntryConfirm.pack()
-        confirm_button = Button(changePasswordTop, text="确认", width=5,command=changePasswordFunc)  # 确认按钮
-        confirm_button.place(x=60, y=150)
-        delete_button = Button(changePasswordTop, text="重置", width=5,command=changePasswordClear)  # 清除按钮
-        delete_button.place(x=145, y=150)
+        changePasswordTopEntryConfirm.bind("<FocusIn>", lambda event: set_active_entry(changePasswordTopEntryConfirm))  # 跟踪当前活跃
+        # 数字键盘
+        button_frame = tk.Frame(changePasswordTop)
+        button_frame.pack()
+        for (text, row, col) in buttons:
+            if text == 'C':
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=clear_entry)
+            elif text == '←':
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=backspace_entry)
+            else:
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16),
+                                   command=lambda t=text: insert_number(t))
+            button.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
+        confirm_button = Button(changePasswordTop, text="确认", width=15, height=2, command=changePasswordFunc)  # 确认按钮
+        confirm_button.pack()
         modalWindows(changePasswordTop)
     def transfer():
         def onConfirm():
@@ -173,6 +226,7 @@ def login(userAccount):
             try:
                 bank.transfer(userAccount,transferDesAccount,transferAmount)
                 messagebox.showinfo("转账",f"交易成功！\n您当前的余额为：{bank.getBalance(userAccount)}")
+                transferTop.destroy()
             except KeyError:
                 messagebox.showerror("错误","目标账户不存在！")
                 transferTop.destroy()
@@ -188,19 +242,34 @@ def login(userAccount):
         transferTop = Toplevel(root)
         transferTop.title("转账")
         width = 300
-        height = 150
+        height = 450
         centerX = int(window_width / 2 - width / 2)
         centerY = int(window_height / 2 - height / 2)
         transferTop.resizable(width=False, height=False)  # 不允许改变窗口大小
         transferTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+        transferTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
         transferLabel = Label(transferTop, text="目标账号：").pack()
         transferEntryDesAccount = Entry(transferTop)
         transferEntryDesAccount.pack()
+        transferEntryDesAccount.bind("<FocusIn>", lambda event: set_active_entry(transferEntryDesAccount)) #跟踪当前活跃
         transferLabel2 = Label(transferTop, text="金额：").pack()
         transferEntryAmount = Entry(transferTop)
         transferEntryAmount.pack()
-        confirm_button = Button(transferTop, text="确认", width=15, command=onConfirm)  # 确认按钮
-        confirm_button.place(x=90, y=100)
+        transferEntryAmount.bind("<FocusIn>", lambda event: set_active_entry(transferEntryAmount))
+        # 数字键盘
+        button_frame = tk.Frame(transferTop)
+        button_frame.pack()
+        for (text, row, col) in buttons:
+            if text == 'C':
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=clear_entry)
+            elif text == '←':
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=backspace_entry)
+            else:
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16),
+                                   command=lambda t=text: insert_number(t))
+            button.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
+        confirm_button = Button(transferTop, text="确认", width=15, height=2, command=onConfirm)  # 确认按钮
+        confirm_button.pack()
         modalWindows(transferTop)
     def deposit(): # 存款函数
         def depositFunc():
@@ -218,17 +287,32 @@ def login(userAccount):
         depositTop = Toplevel(root)
         depositTop.title("存款")
         width = 250
-        height = 100
+        height = 400
         centerX = int(window_width / 2 - width / 2)
         centerY = int(window_height / 2 - height / 2)
         depositTop.resizable(width=False, height=False)  # 不允许改变窗口大小
         depositTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+        depositTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
         depositTopLabel1 = Label(depositTop, text="请输入存款金额")
         depositTopLabel1.pack()
+        global depositTopEntryAmount
         depositTopEntryAmount = Entry(depositTop)
         depositTopEntryAmount.pack()
-        confirm_button = Button(depositTop, text="确认", width=15, command=depositFunc)  # 确认按钮
-        confirm_button.place(x=68, y=58)
+        depositTopEntryAmount.bind("<FocusIn>", lambda event: set_active_entry(depositTopEntryAmount))  # 跟踪当前活跃
+        # 数字键盘
+        button_frame = tk.Frame(depositTop)
+        button_frame.pack()
+        for (text, row, col) in buttons:
+            if text == 'C':
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=clear_entry)
+            elif text == '←':
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=backspace_entry)
+            else:
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16),
+                                   command=lambda t=text: insert_number(t))
+            button.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
+        confirm_button = Button(depositTop, text="确认", width=15, height=2, command=depositFunc)  # 确认按钮
+        confirm_button.pack()
         modalWindows(depositTop)
     def checkBalance():  # 查余额函数
         messagebox.showinfo('查询余额',f'您的账户{userAccount}'
@@ -255,18 +339,33 @@ def login(userAccount):
         withdrawalTop = Toplevel(root)
         withdrawalTop.title("取款")
         width = 250
-        height = 100
+        height = 400
         centerX = int(window_width / 2 - width / 2)
         centerY = int(window_height / 2 - height / 2)
         withdrawalTop.resizable(width=False, height=False)  # 不允许改变窗口大小
         withdrawalTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+        withdrawalTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
         withdrawalLabel1 = Label(withdrawalTop, text="请输入取款金额")
         withdrawalLabel1.pack()
         withdrawalEntryAmount = Entry(withdrawalTop)
         withdrawalEntryAmount.pack()
-        confirm_button = Button(withdrawalTop, text="确认", width=15, command=withdrawalFunc)  # 确认按钮
-        confirm_button.place(x=68, y=58)
+        withdrawalEntryAmount.bind("<FocusIn>", lambda event: set_active_entry(withdrawalEntryAmount))  # 跟踪当前活跃Entry
+        # 数字键盘
+        button_frame = tk.Frame(withdrawalTop)
+        button_frame.pack()
+        for (text, row, col) in buttons:
+            if text == 'C':
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=clear_entry)
+            elif text == '←':
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=backspace_entry)
+            else:
+                button = tk.Button(button_frame, text=text, font=('Helvetica', 16),
+                                   command=lambda t=text: insert_number(t))
+            button.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
+        confirm_button = Button(withdrawalTop, text="确认", width=15, height=2, command=withdrawalFunc)  # 确认按钮
+        confirm_button.pack()
         modalWindows(withdrawalTop)
+        # 数字键盘
     # 建立查余额按钮
     global checkBalanceBtn
     checkBalanceBtn = tk.Button(root,
@@ -348,6 +447,7 @@ def signIn():
         #login(userAccount)##########调试用
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不足六位！')
+            signInTop.destroy()
             signIn()
         elif bank.verify(userAccount, userPassword):
             messagebox.showinfo('登入', f'账户：{userAccount}\n登入成功！\n请确保周边环境安全再进行操作！')
@@ -358,23 +458,39 @@ def signIn():
             login(userAccount)
         else:
             messagebox.showwarning('错误', '您输入的账号不存在或密码错误！\n请重新输入')
+            signInTop.destroy()
             signIn()
     signInTop = Toplevel(root)
     signInTop.title("登入")
     width = 300
-    height = 150
+    height = 450
     centerX = int(window_width / 2 - width / 2)
     centerY = int(window_height / 2 - height / 2)
     signInTop.resizable(width=False, height=False)  # 不允许改变窗口大小
     signInTop.geometry(f"{width}x{height}+{centerX}+{centerY}")
+    signInTop.iconbitmap('./images/favicon.ico')  # 设置窗口icon
     signInLabel1 = Label(signInTop,text="请输入账号：").pack()
     signInEntryAccount = Entry(signInTop)
     signInEntryAccount.pack()
+    signInEntryAccount.bind("<FocusIn>", lambda event: set_active_entry(signInEntryAccount))  # 跟踪当前活跃
     signInLabel2 = Label(signInTop, text="请输入密码：").pack()
     signInEntryPassword=Entry(signInTop,show='*')
     signInEntryPassword.pack()
-    confirm_button = Button(signInTop, text="登入",width=15, command=signInVerify) #确认按钮
-    confirm_button.place(x=90, y=100)
+    signInEntryPassword.bind("<FocusIn>", lambda event: set_active_entry(signInEntryPassword))  # 跟踪当前活跃
+    # 数字键盘
+    button_frame = tk.Frame(signInTop)
+    button_frame.pack()
+    for (text, row, col) in buttons:
+        if text == 'C':
+            button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=clear_entry)
+        elif text == '←':
+            button = tk.Button(button_frame, text=text, font=('Helvetica', 16), command=backspace_entry)
+        else:
+            button = tk.Button(button_frame, text=text, font=('Helvetica', 16),
+                               command=lambda t=text: insert_number(t))
+        button.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
+    confirm_button = Button(signInTop, text="登入", width=15, height=2, command=signInVerify)  # 确认按钮
+    confirm_button.pack()
     #使窗口模态化
     modalWindows(signInTop)
 def mainWindow(): # 主窗口部分
@@ -425,10 +541,10 @@ def mainWindow(): # 主窗口部分
                                  command=createAccount)
     createAccountBtn.place(x=90, y=200)  # 开户按钮加入视窗
     # 时间图标---暂时弃用
-    global clockImg
-    clockImg=processImageWithTransparency('./images/clock-solid.png', 24, 24, (0, 0, 0), (255, 255, 255))
-    labelClock = Label(root, image=clockImg)
-    labelClock.place(x=0, y=568)
+    # global clockImg
+    # clockImg=processImageWithTransparency('./images/clock-solid.png', 24, 24, (0, 0, 0), (255, 255, 255))
+    # labelClock = Label(root, image=clockImg)
+    # labelClock.place(x=0, y=568)
     global UnionPayImg,UnionPay_id,MasterCardImg,MasterCard_id,JCBImg,JCB_id,VisaImg,Visa_id,TopBgImg,BaiyunCardImg,BaiyunId
     #插入白云卡
     BaiyunCardImg = getImage('./images/BaiyunBank.png', width=320, height=219)
