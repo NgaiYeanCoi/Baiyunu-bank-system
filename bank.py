@@ -207,7 +207,7 @@ class Bank:
         """
         transactions = []
         for transaction in self.__transactions:
-            if transaction.dest == account:
+            if transaction.source == account or transaction.dest == account:
                 transactions.append(transaction)
         return transactions
 
