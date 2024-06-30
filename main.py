@@ -21,23 +21,12 @@ keypadButtons = [
     ('C', 4, 0), ('0', 4, 1), ('←', 4, 2),
     ('.', 5, 0)
 ]
-NoPointKeypadButtons = [
+noPointKeypadButtons = [
     ('1', 1, 0), ('2', 1, 1), ('3', 1, 2),
     ('4', 2, 0), ('5', 2, 1), ('6', 2, 2),
     ('7', 3, 0), ('8', 3, 1), ('9', 3, 2),
     ('C', 4, 0), ('0', 4, 1), ('←', 4, 2),
 ]
-def addNoPointicKeypad(window):
-    frame = tk.Frame(window)
-    frame.pack()
-    for (text, row, col) in NoPointKeypadButtons:
-        if text == 'C':
-            btn = tk.Button(frame, text=text, font=('Helvetica', 16), command=clearEntry)
-        elif text == '←':
-            btn = tk.Button(frame, text=text, font=('Helvetica', 16), command=backspaceEntry)
-        else:
-            btn = tk.Button(frame, text=text, font=('Helvetica', 16), command=lambda t=text: insertNumber(t))
-        btn.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
 # 窗口根布局
 root: tk.Tk
 # 窗口根画布
@@ -108,11 +97,11 @@ def createPasswordEntry(window):
     return createEntry(window, show="*")
 
 
-def addNumericKeypad(window):
-    """为窗口添加数字键盘"""
+def addKeypad(window, buttons):
+    """为窗口添加虚拟键盘，参数 buttons 给出按钮"""
     frame = tk.Frame(window)
     frame.pack()
-    for (text, row, col) in keypadButtons:
+    for (text, row, col) in buttons:
         if text == 'C':
             btn = tk.Button(frame, text=text, font=('Helvetica', 16), command=clearEntry)
         elif text == '←':
@@ -120,6 +109,16 @@ def addNumericKeypad(window):
         else:
             btn = tk.Button(frame, text=text, font=('Helvetica', 16), command=lambda t=text: insertNumber(t))
         btn.grid(row=row, column=col, ipadx=10, ipady=10, padx=5, pady=5)
+
+
+def addNumericKeypad(window):
+    """为窗口添加数字键盘"""
+    addKeypad(window, keypadButtons)
+
+
+def addNoPointKeypad(window):
+    """为窗口添加没有小数点的数字键盘"""
+    addKeypad(window, noPointKeypadButtons)
 
 
 def getImage(file, width, height):
@@ -160,10 +159,10 @@ def newDialog(title, width, height):
     return window
 
 
-def mainButton(text, x, y, command, bg='#ffffff',activebackground='#026dbd'):
+def mainButton(text, x, y, command, bg='#ffffff', activeBackground='#026dbd'):
     """在主窗口创建新的按钮"""
     btn = tk.Button(root, text=text, width=20, height=5, bd=2, padx=10, bg=bg,
-                    activebackground=activebackground, font=('宋体', 15, 'bold'), overrelief='sunken',
+                    activebackground=activeBackground, font=('宋体', 15, 'bold'), overrelief='sunken',
                     command=command)
     btn.place(x=x, y=y)
     return btn
@@ -193,6 +192,7 @@ def login(userAccount):
     def changePassword():
         """修改密码按钮回调"""
         def onConfirm():
+            confirmButton.config(state=tk.DISABLED)
             userPasswordOld = changePasswordTopEntryPre.get()
             userPasswordNew = changePasswordTopEntryNew.get()
             userPasswordConfirm = changePasswordTopEntryConfirm.get()
@@ -223,12 +223,14 @@ def login(userAccount):
         Label(window, text="请再次输入新密码").pack()
         changePasswordTopEntryConfirm = createPasswordEntry(window)
         # 数字键盘
-        addNoPointicKeypad(window)
-        Button(window, text="确认", width=15, height=2, command=onConfirm).pack()  # 确认按钮
+        addNoPointKeypad(window)
+        confirmButton = Button(window, text="确认", width=15, height=2, command=onConfirm)  # 确认按钮
+        confirmButton.pack()
 
     def transfer():
         """转账按钮回调"""
         def onConfirm():
+            confirmButton.config(state=tk.DISABLED)
             transferDesAccount = transferEntryDesAccount.get()
             transferAmount = transferEntryAmount.get()
             if userAccount == transferDesAccount:
@@ -255,11 +257,13 @@ def login(userAccount):
         transferEntryAmount = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        Button(window, text="确认", width=16, height=3, command=onConfirm).place(x=120, y=380)  # 确认按钮
+        confirmButton = Button(window, text="确认", width=16, height=3, command=onConfirm)  # 确认按钮
+        confirmButton.place(x=120, y=380)
 
     def deposit():
         """存款按钮回调"""
         def onConfirm():
+            confirmButton.config(state=tk.DISABLED)
             # 获取交易前余额
             beforeBalance = bank.getBalance(userAccount)
             userAmount = depositAmountEntry.get()
@@ -279,7 +283,8 @@ def login(userAccount):
         depositAmountEntry = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        Button(window, text="确认", width=15, height=2, command=onConfirm).place(x=120, y=335)  # 确认按钮
+        confirmButton = Button(window, text="确认", width=15, height=2, command=onConfirm)  # 确认按钮
+        confirmButton.place(x=120, y=335)
 
     def checkBalance():
         """查余额按钮回调"""
@@ -290,6 +295,7 @@ def login(userAccount):
     def withdrawal():
         """取款按钮回调"""
         def onConfirm():
+            confirmButton.config(state=tk.DISABLED)
             beforeBalance = bank.getBalance(userAccount)  # 获取交易前余额
             userAmount = withdrawalEntryAmount.get()
             try:
@@ -311,13 +317,14 @@ def login(userAccount):
         withdrawalEntryAmount = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        Button(window, text="确认", width=15, height=2, command=onConfirm).place(x=120,y=335)  # 确认按钮
+        confirmButton = Button(window, text="确认", width=15, height=2, command=onConfirm)  # 确认按钮
+        confirmButton.place(x=120, y=335)
 
-    #建立登入后的按钮
+    # 建立登入后的按钮
     mainButton("查询余额\nBalance Inquiry", 125, 380, checkBalance)  # 建立查余额按钮
     mainButton("取款\nWithdrawal", 125, 200, withdrawal)  # 建立取款按钮
     mainButton("存款\nDeposit", 415, 200, deposit)  # 建立存款按钮
-    mainButton("登出\nLogout", 705, 380, goBack, '#026dbd','#ffffff')  # 建立登出按钮
+    mainButton("登出\nLogout", 705, 380, goBack, '#026dbd', '#ffffff')  # 建立登出按钮
     mainButton("转账\nTransfer", 705, 200, transfer)  # 建立转账按钮
     mainButton("修改密码\nChange Password", 415, 380, changePassword)  # 建立修改密码
 
@@ -325,6 +332,7 @@ def login(userAccount):
 def createAccount():
     """开户按钮回调"""
     def onConfirm():
+        confirmButton.config(state=tk.DISABLED)
         userPassword = createAccountEntry1.get()
         if userPassword != createAccountEntry2.get():
             messagebox.showwarning('错误', '你输入的密码不一致')
@@ -345,16 +353,18 @@ def createAccount():
     Label(window, text="请再次输入密码：").pack()
     createAccountEntry2 = createPasswordEntry(window)
     bindFocusableWindow(window)
-    addNoPointicKeypad(window)
-    Button(window, text="确认", width=15, height=2, command=onConfirm).pack()  # 确认按钮
+    addNoPointKeypad(window)
+    confirmButton = Button(window, text="确认", width=15, height=2, command=onConfirm)  # 确认按钮
+    confirmButton.pack()
 
 
 def signIn():
     """登入按钮回调"""
     def onConfirm():
+        confirmButton.config(state=tk.DISABLED)
         userPassword = signInEntryPassword.get()
         userAccount = signInEntryAccount.get()
-        #login('1') ####前端调试用 不删
+        # login('1') ####前端调试用 不删
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不是六位！')
             signIn()
@@ -378,7 +388,8 @@ def signIn():
     signInEntryPassword = createPasswordEntry(window)
     # 数字键盘
     addNumericKeypad(window)
-    Button(window, text="登入", width=15, height=2, command=onConfirm).place(x=120,y=380)  # 确认按钮
+    confirmButton = Button(window, text="登入", width=15, height=2, command=onConfirm)  # 确认按钮
+    confirmButton.place(x=120, y=380)
 
 
 def mainWindow():
