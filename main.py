@@ -60,27 +60,32 @@ globalImages = {}
 canvasIdsToDelete = []
 
 
-def setActiveEntry(entry_widget):
+def setActiveEntry(entry):
+    """有新输入框获得焦点时调用"""
     global activeEntry
-    activeEntry = entry_widget
+    activeEntry = entry
 
 
-def backspaceEntry():  # 退格方法
+def backspaceEntry():
+    """用户点击数字键盘的退格键时调用"""
     if activeEntry and activeEntry.winfo_exists():
         activeEntry.delete(len(activeEntry.get()) - 1, tk.END)
 
 
-def insertNumber(number):  # 输入数字方法
+def insertNumber(number):
+    """点击数字键盘按钮输入数字方法"""
     if activeEntry and activeEntry.winfo_exists():
         activeEntry.insert(tk.END, number)
 
 
-def clearEntry():  # 清空方法
+def clearEntry():
+    """清空输入框内容方法"""
     if activeEntry and activeEntry.winfo_exists():
         activeEntry.delete(0, tk.END)
 
 
 def bindFocusableWindow(window):
+    """跟踪窗口焦点状态，当创建可能获得焦点（有输入框）的新窗口时调用"""
     def onClose():
         window.destroy()
         setActiveEntry(None)
@@ -89,19 +94,22 @@ def bindFocusableWindow(window):
 
 
 def createEntry(window, **args):
+    """创建输入框 Entry 对象，并跟踪其焦点"""
     entry = Entry(window, **args)
     entry.pack()
     entry.bind("<FocusIn>", lambda event: setActiveEntry(entry))  # 跟踪当前活跃
-    entry.bind("<FocusOut>", lambda event: setActiveEntry(None))
+    entry.bind("<FocusOut>", lambda event: setActiveEntry(None))  # 失去焦点时置空
     bindFocusableWindow(root)
     return entry
 
 
 def createPasswordEntry(window):
+    """创建密码输入框（输入内容被遮挡为*） Entry 对象并跟踪其焦点"""
     return createEntry(window, show="*")
 
 
 def addNumericKeypad(window):
+    """为窗口添加数字键盘"""
     frame = tk.Frame(window)
     frame.pack()
     for (text, row, col) in keypadButtons:
@@ -116,29 +124,36 @@ def addNumericKeypad(window):
 
 def getImage(file, width, height):
     """
-            获取图片方法打开指定图片文件，缩放到指定尺寸
-            :return: 返回图片文件
+    获取图片方法打开指定图片文件，缩放到指定尺寸
+    :return: 返回图片文件
     """
     image = ImageTk.PhotoImage(Image.open(file).resize((width, height)))
-    globalImages[file] = image
+    globalImages[file] = image  # 添加到全局引用对象中，防止其被销毁。使用文件路径作键，新图片会覆盖掉旧图片，以防止内存无限泄漏
     return image
 
 
-def updateTime():  # 时间模块
+def updateTime():
+    """创建时间文本框"""
     currentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-    label_time = tk.Label(root, text=currentTime, font=10, fg='#ffffff', bg='#454545')
-    label_time.place(x=5, y=570)
-    label_time.after(1000, updateTime)
+    timeLabel = tk.Label(root, text=currentTime, font=10, fg='#ffffff', bg='#454545')
+    timeLabel.place(x=5, y=570)
+    timeLabel.after(1000, updateTime)
 
 
-def newWindow(title, width, height):
-    window = Toplevel(root)
+def configureWindowAttributes(window, title, width, height):
+    """配置窗口基本属性，如标题，居中，不可改变大小"""
     window.title(title)
-    centerX = int(windowWidth / 2 - width / 2)
-    centerY = int(windowHeight / 2 - height / 2)
+    centerX = int((windowWidth - width) / 2)  # 计算左坐标
+    centerY = int((windowHeight - height) / 2)  # 计算上坐标 以保证在中间显示
     window.resizable(width=False, height=False)  # 不允许改变窗口大小
     window.geometry(f"{width}x{height}+{centerX}+{centerY}")
     window.iconbitmap('./images/favicon.ico')  # 设置窗口 icon
+
+
+def newDialog(title, width, height):
+    """创建新的对话框窗口，并设置其为模态"""
+    window = Toplevel(root)
+    configureWindowAttributes(window, title, width, height)
     window.grab_set()  # 使窗口模态
     window.focus_set()  # 确保模态窗口获得焦点
     window.transient(root)  # 设置为主窗口的临时窗口
@@ -146,6 +161,7 @@ def newWindow(title, width, height):
 
 
 def mainButton(text, x, y, command, bg='#ffffff',activebackground='#026dbd'):
+    """在主窗口创建新的按钮"""
     btn = tk.Button(root, text=text, width=20, height=5, bd=2, padx=10, bg=bg,
                     activebackground=activebackground, font=('宋体', 15, 'bold'), overrelief='sunken',
                     command=command)
@@ -153,35 +169,10 @@ def mainButton(text, x, y, command, bg='#ffffff',activebackground='#026dbd'):
     return btn
 
 
-def onExit():  # 是否退出询问方框
+def onExit():
+    """用户关闭窗口时调用，显示是否退出询问方框"""
     if messagebox.askyesno('退出系统', '您真的要退出白云银行管理系统吗？'):
         root.destroy()  # 关闭窗口
-
-
-def createAccount():  # 开户函数
-    def createCheckPasswords():
-        userPassword = createAccountEntry1.get()
-        if userPassword != createAccountEntry2.get():
-            messagebox.showwarning('错误', '你输入的密码不一致')
-            createAccount()
-        elif not re.match(r"^\d{6}$", userPassword):
-            messagebox.showwarning('错误', f'您输入的密码必须是六位整数！')
-            createAccount()
-        else:
-            account = bank.createAccount(userPassword)
-            messagebox.showinfo('成功', f'密码输入一致，开户成功，你的银行账号是：{account}\n请务必记住！')
-        window.destroy()
-        setActiveEntry(None)
-
-    # 点击开户后窗口
-    window = newWindow("开户", 300, 450)
-    Label(window, text="请输入密码：").pack()
-    createAccountEntry1 = createPasswordEntry(window)
-    Label(window, text="请再次输入密码：").pack()
-    createAccountEntry2 = createPasswordEntry(window)
-    bindFocusableWindow(window)
-    addNoPointicKeypad(window)
-    Button(window, text="确认", width=15, height=2, command=createCheckPasswords).pack()  # 确认按钮
 
 
 def login(userAccount):
@@ -194,12 +185,14 @@ def login(userAccount):
     canvasRoot.create_text(550, 150, text='Please select next step', font=('宋体', 20, 'bold', 'italic'), fill='white')
 
     def goBack():
+        """登出按钮回调函数"""
         if messagebox.askokcancel('登出账户', '是否要登出？'):
             root.destroy()
             mainWindow()
 
     def changePassword():
-        def changePasswordFunc():
+        """修改密码按钮回调"""
+        def onConfirm():
             userPasswordOld = changePasswordTopEntryPre.get()
             userPasswordNew = changePasswordTopEntryNew.get()
             userPasswordConfirm = changePasswordTopEntryConfirm.get()
@@ -222,7 +215,7 @@ def login(userAccount):
             setActiveEntry(None)
 
         # 改密码窗口
-        window = newWindow("修改密码", 280, 480)
+        window = newDialog("修改密码", 280, 480)
         Label(window, text="请输入旧密码").pack()
         changePasswordTopEntryPre = createPasswordEntry(window)
         Label(window, text="请输入新密码").pack()
@@ -231,9 +224,10 @@ def login(userAccount):
         changePasswordTopEntryConfirm = createPasswordEntry(window)
         # 数字键盘
         addNoPointicKeypad(window)
-        Button(window, text="确认", width=15, height=2, command=changePasswordFunc).pack()  # 确认按钮
+        Button(window, text="确认", width=15, height=2, command=onConfirm).pack()  # 确认按钮
 
     def transfer():
+        """转账按钮回调"""
         def onConfirm():
             transferDesAccount = transferEntryDesAccount.get()
             transferAmount = transferEntryAmount.get()
@@ -254,7 +248,7 @@ def login(userAccount):
             window.destroy()
             setActiveEntry(None)
 
-        window = newWindow("转账", 300, 480)
+        window = newDialog("转账", 300, 480)
         Label(window, text="目标账号：").pack()
         transferEntryDesAccount = createEntry(window)
         Label(window, text="金额：").pack()
@@ -263,8 +257,9 @@ def login(userAccount):
         addNumericKeypad(window)
         Button(window, text="确认", width=16, height=3, command=onConfirm).place(x=120, y=380)  # 确认按钮
 
-    def deposit():  # 存款函数
-        def depositFunc():
+    def deposit():
+        """存款按钮回调"""
+        def onConfirm():
             # 获取交易前余额
             beforeBalance = bank.getBalance(userAccount)
             userAmount = depositAmountEntry.get()
@@ -278,21 +273,23 @@ def login(userAccount):
             setActiveEntry(None)
 
         # 存款窗口
-        window = newWindow("存款", 300, 430)
+        window = newDialog("存款", 300, 430)
         Label(window, text="请输入存款金额").pack()
         global depositAmountEntry
         depositAmountEntry = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        Button(window, text="确认", width=16, height=3, command=depositFunc).place(x=120, y=335)  # 确认按钮
+        Button(window, text="确认", width=15, height=2, command=onConfirm).place(x=120, y=335)  # 确认按钮
 
-    def checkBalance():  # 查余额函数
+    def checkBalance():
+        """查余额按钮回调"""
         locked = "已锁定" if bank.getLockState(userAccount) else "未锁定"
         msg = f'您的账户{userAccount}\n余额为：{bank.getBalance(userAccount)}元\n您的用户状态：{locked}'
         messagebox.showinfo('查询余额', msg)
 
-    def withdrawal():  # 取款函数
-        def withdrawalFunc():
+    def withdrawal():
+        """取款按钮回调"""
+        def onConfirm():
             beforeBalance = bank.getBalance(userAccount)  # 获取交易前余额
             userAmount = withdrawalEntryAmount.get()
             try:
@@ -309,12 +306,12 @@ def login(userAccount):
             setActiveEntry(None)
 
         # 取款窗口
-        window = newWindow("取款", 300, 430)
+        window = newDialog("取款", 300, 430)
         Label(window, text="请输入取款金额").pack()
         withdrawalEntryAmount = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        Button(window, text="确认", width=16, height=3, command=withdrawalFunc).place(x=120,y=335)  # 确认按钮
+        Button(window, text="确认", width=15, height=2, command=onConfirm).place(x=120,y=335)  # 确认按钮
 
     #建立登入后的按钮
     mainButton("查询余额\nBalance Inquiry", 125, 380, checkBalance)  # 建立查余额按钮
@@ -325,8 +322,36 @@ def login(userAccount):
     mainButton("修改密码\nChange Password", 415, 380, changePassword)  # 建立修改密码
 
 
+def createAccount():
+    """开户按钮回调"""
+    def onConfirm():
+        userPassword = createAccountEntry1.get()
+        if userPassword != createAccountEntry2.get():
+            messagebox.showwarning('错误', '你输入的密码不一致')
+            createAccount()
+        elif not re.match(r"^\d{6}$", userPassword):
+            messagebox.showwarning('错误', f'您输入的密码必须是六位整数！')
+            createAccount()
+        else:
+            account = bank.createAccount(userPassword)
+            messagebox.showinfo('成功', f'密码输入一致，开户成功，你的银行账号是：{account}\n请务必记住！')
+        window.destroy()
+        setActiveEntry(None)
+
+    # 点击开户后窗口
+    window = newDialog("开户", 300, 450)
+    Label(window, text="请输入密码：").pack()
+    createAccountEntry1 = createPasswordEntry(window)
+    Label(window, text="请再次输入密码：").pack()
+    createAccountEntry2 = createPasswordEntry(window)
+    bindFocusableWindow(window)
+    addNoPointicKeypad(window)
+    Button(window, text="确认", width=15, height=2, command=onConfirm).pack()  # 确认按钮
+
+
 def signIn():
-    def signInVerify():
+    """登入按钮回调"""
+    def onConfirm():
         userPassword = signInEntryPassword.get()
         userAccount = signInEntryAccount.get()
         #login('1') ####前端调试用 不删
@@ -346,30 +371,27 @@ def signIn():
         window.destroy()
         setActiveEntry(None)
 
-    window = newWindow("登入", 300, 460)
+    window = newDialog("登入", 300, 460)
     Label(window, text="请输入账号：").pack()
     signInEntryAccount = createEntry(window)
     Label(window, text="请输入密码：").pack()
     signInEntryPassword = createPasswordEntry(window)
     # 数字键盘
     addNumericKeypad(window)
-    Button(window, text="登入", width=16, height=3, command=signInVerify).place(x=120,y=380)  # 确认按钮
+    Button(window, text="登入", width=15, height=2, command=onConfirm).place(x=120,y=380)  # 确认按钮
 
 
-def mainWindow():  # 主窗口部分
+def mainWindow():
+    """显示主窗口"""
     global root, windowWidth, windowHeight, canvasRoot, createAccountBtn, signInBtn
     root = tk.Tk()  # 建立Tkinter视窗
     windowWidth = root.winfo_screenwidth()  # 取得屏幕宽度
     windowHeight = root.winfo_screenheight()  # 取得屏幕高度
-    root.resizable(width=False, height=False)  # 不允许改变窗口大小
-    root.title('Baiyun University Bank System')  # 设置窗口标题
-    root.iconbitmap('./images/favicon.ico')  # 设置窗口icon
     width = 1100  # 宽
     height = 600  # 高
-    centerX = int((windowWidth - width) / 2)  # 计算左坐标
-    centerY = int((windowHeight - height) / 2)  # 计算上坐标 以保证在中间显示
-    root.geometry(f'{width}x{height}+{centerX}+{centerY}')  # 定义视窗大小
+    configureWindowAttributes(root, "Baiyun University Bank System", width, height)
     root.protocol("WM_DELETE_WINDOW", onExit)
+
     canvasRoot = tk.Canvas(root, width=width, height=height)
     backgroundImg = getImage('./images/bg.png', width=width, height=height)
     canvasRoot.create_image(550, 300, image=backgroundImg)
@@ -384,6 +406,7 @@ def mainWindow():  # 主窗口部分
     signInBtn = mainButton("登入\nSign In", 90, 380, signIn)  # 登录按钮
 
     def addCardImage(file, x):
+        """插入新的卡组织图片，登入成功后此函数插入的图像会被移除"""
         image = getImage(file, 65, 41)
         elementId = canvasRoot.create_image(x, 470, image=image)
         canvasIdsToDelete.append(elementId)
