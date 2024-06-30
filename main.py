@@ -283,7 +283,7 @@ def login(userAccount):
         depositAmountEntry = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        confirmButton = Button(window, text="确认", width=15, height=2, command=onConfirm)  # 确认按钮
+        confirmButton = Button(window, text="确认", width=15, height=3, command=onConfirm)  # 确认按钮
         confirmButton.place(x=120, y=335)
 
     def checkBalance():
@@ -317,7 +317,7 @@ def login(userAccount):
         withdrawalEntryAmount = createEntry(window)
         # 数字键盘
         addNumericKeypad(window)
-        confirmButton = Button(window, text="确认", width=15, height=2, command=onConfirm)  # 确认按钮
+        confirmButton = Button(window, text="确认", width=15, height=3, command=onConfirm)  # 确认按钮
         confirmButton.place(x=120, y=335)
 
     # 建立登入后的按钮
@@ -364,7 +364,7 @@ def signIn():
         confirmButton.config(state=tk.DISABLED)
         userPassword = signInEntryPassword.get()
         userAccount = signInEntryAccount.get()
-        # login('1') ####前端调试用 不删
+        #login('1') ####前端调试用 不删
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不是六位！')
             signIn()
@@ -387,9 +387,9 @@ def signIn():
     Label(window, text="请输入密码：").pack()
     signInEntryPassword = createPasswordEntry(window)
     # 数字键盘
-    addNumericKeypad(window)
+    addNoPointKeypad(window)
     confirmButton = Button(window, text="登入", width=15, height=2, command=onConfirm)  # 确认按钮
-    confirmButton.place(x=120, y=380)
+    confirmButton.pack()
 
 
 def mainWindow():

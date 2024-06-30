@@ -1,5 +1,5 @@
 import os
-
+import base64
 
 class Database:
     """
@@ -59,3 +59,4 @@ class Database:
                     f.write(",")
                     f.write(str(item))
                 f.write('\n')
+
