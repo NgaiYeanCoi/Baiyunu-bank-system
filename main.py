@@ -11,6 +11,7 @@ from typing import Optional
 from PIL import Image, ImageTk
 from bank import bank, AccountLockedError
 from tkinter import messagebox, Toplevel, Button, Label, Entry
+import csv
 
 # GUI的部分
 # 数字键盘按钮数据
@@ -134,6 +135,7 @@ def getImage(file, width, height):
 
 def updateTime():
     """创建时间文本框"""
+    global timeLabel
     currentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
     timeLabel = tk.Label(root, text=currentTime, font=10, fg='#ffffff', bg='#454545')
     timeLabel.place(x=5, y=570)
@@ -181,6 +183,7 @@ def loginButton(text, x, y, command, bg='#ffffff', activeBackground='#026dbd', w
 def onExit():
     """用户关闭窗口时调用，显示是否退出询问方框"""
     if messagebox.askyesno('退出系统', '您真的要退出白云银行管理系统吗？'):
+        timeLabel.destroy()
         root.destroy()  # 关闭窗口
 
 
@@ -268,6 +271,7 @@ def login(userAccount):
             transferAmount = transferEntryAmount.get()
             if userAccount == transferDesAccount:
                 messagebox.showerror("错误", "不能自己给自己转账！")
+                window.destroy()
                 return
             try:
                 bank.transfer(userAccount, transferDesAccount, transferAmount)
@@ -363,39 +367,100 @@ def login(userAccount):
         def toggleSwitch():
             if switchVar.get():
                 switchLabel.config(text='您当前的设定为：锁定')
+                switchVar.set(True)
+
             else:
                 switchLabel.config(text='您当前的设定为：未锁定')
+                switchVar.set(False)
 
         def onConfirm():
             if switchVar.get():
+                if switchVar.get() == bank.getLockState(userAccount):
+                    messagebox.showerror('错误', "账户已被锁定无需锁定")
+                    window.destroy()
+                    return
                 bank.setLocked(userAccount, True)
                 messagebox.showinfo('切换账户状态', "锁定成功！")
                 checkUserStatusLabel.config(
                     text=f'您当前的状态是：{"已锁定" if bank.getLockState(userAccount) else "未锁定"}')
+                window.destroy()
             else:
+                if switchVar.get() == bank.getLockState(userAccount):
+                    messagebox.showerror('错误', "账户已处于解锁状态无需解锁")
+                    window.destroy()
+                    return
                 bank.setLocked(userAccount, False)
                 messagebox.showinfo('切换账户状态', "解锁成功！")
                 checkUserStatusLabel.config(
                     text=f'您当前的状态是：{"已锁定" if bank.getLockState(userAccount) else "未锁定"}')
+                window.destroy()
 
-        #
         window = newDialog("切换账户状态", 300, 200)
         state = "已锁定" if bank.getLockState(userAccount) else "未锁定"
         checkUserStatusLabel = Label(window, text=f"您当前的状态是：{state}")
         checkUserStatusLabel.pack()
+
+        # 创建一个BooleanVar变量来跟踪Checkbutton的状态
+        if bank.getLockState(userAccount):
+            switchVar = tk.BooleanVar(value=True)
+            switchLabel = Label(window, text="您当前的设定为：已锁定")
+
+        else:
+            switchVar = tk.BooleanVar(value=False)
+            switchLabel = Label(window, text="您当前的设定为：未锁定")
         # 切换账户状态窗口
-        switchVar = tk.IntVar()  # 设定包装为整型
         switchCheckbutton = tk.Checkbutton(window, text="切换状态", font=('黑体', 15, 'bold'), variable=switchVar,
-                                           command=toggleSwitch)
+                                           command=toggleSwitch, state='active')
         switchCheckbutton.pack(pady=15)
-        switchLabel = Label(window, text="您当前的设定未：未锁定")
         switchLabel.pack(pady=15)
         # 确认按钮
         confirmButton = Button(window, text="确认", width=15, height=2, command=onConfirm)
         confirmButton.pack()
 
     def checkTransaction():
-        pass
+        window = newDialog("查询交易明细", 450, 300)
+        # 插入文本
+        Label(window, text="源账户").place(x=60, y=10)
+        Label(window, text="目的账户").place(x=200, y=10)
+        Label(window, text="操作").place(x=300, y=10)
+        Label(window, text="金额").place(x=355, y=10)
+
+        # 创建Frame
+        frame = tk.Frame(window)
+        frame.place(x=30, y=30, width=390, height=260)
+        # 创建Text控件
+        text = tk.Text(frame, wrap="none", state="disabled")
+
+        # 创建滚动条
+        scrollbar = tk.Scrollbar(frame, orient="vertical", command=text.yview)
+        #h_scrollbar = tk.Scrollbar(frame, orient="horizontal", command=text.xview)
+
+        # 配置Text控件
+        #text.configure(yscrollcommand=scrollbar.set,xscrollcommand=h_scrollbar)
+        text.configure(yscrollcommand=scrollbar.set)
+
+        # 布局控件
+        scrollbar.pack(side="right", fill="y")
+        text.pack(side="left", fill="both", expand=True)
+        # 启用Text控件，以便插入控件
+        text.config(state="normal")
+
+        # 读取CSV文件并显示数据
+        with open('transactions.csv', newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            next(reader)  # 跳过标题行
+            for row in reader:
+                source, destination, operation, amount = row
+                text.window_create("end", window=Label(text, text=source))
+                text.insert("end", " " * 2)
+                text.window_create("end", window=Label(text, text=destination))
+                text.insert("end", " " * 2)
+                text.window_create("end", window=Label(text, text=operation))
+                text.insert("end", " " * 2)
+                text.window_create("end", window=Label(text, text=amount))
+                text.insert("end", "\n")
+        # 禁用Text控件，防止用户编辑
+        text.config(state="disabled")
 
     # 建立登入后的按钮
     # 第一排
@@ -449,7 +514,7 @@ def signIn():
         confirmButton.config(state=tk.DISABLED)
         userPassword = signInEntryPassword.get()
         userAccount = signInEntryAccount.get()
-        # login('1') ####前端调试用 不删
+        # login("4000000000000001") ####前端调试用 不删
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不是六位！')
             signIn()
