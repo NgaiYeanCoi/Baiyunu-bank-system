@@ -362,9 +362,9 @@ def login(userAccount):
 
         def toggleSwitch():
             if switchVar.get():
-                switchLabel.config(text='您当前的设定未：锁定')
+                switchLabel.config(text='您当前的设定为：锁定')
             else:
-                switchLabel.config(text='您当前的设定未：未锁定')
+                switchLabel.config(text='您当前的设定为：未锁定')
 
         def onConfirm():
             if switchVar.get():
@@ -380,8 +380,8 @@ def login(userAccount):
 
         #
         window = newDialog("切换账户状态", 300, 200)
-        checkUserStatusLabel = Label(window,
-                                     text=f"您当前的状态是：{"已锁定" if bank.getLockState(userAccount) else "未锁定"}")
+        state = "已锁定" if bank.getLockState(userAccount) else "未锁定"
+        checkUserStatusLabel = Label(window, text=f"您当前的状态是：{state}")
         checkUserStatusLabel.pack()
         # 切换账户状态窗口
         switchVar = tk.IntVar()  # 设定包装为整型
@@ -403,7 +403,7 @@ def login(userAccount):
     loginButton("修改密码\nChange Password", 80, 380, changePassword)  # 建立查修改密码按钮
     # 第二排
     loginButton("存款\nDeposit", 330, 200, deposit)  # 建立存款按钮
-    loginButton("切换账户状态\nSwitch Account Status", 330, 380, switchLocked)  # 建立切换账户状态按钮
+    loginButton("锁定/解锁账户\nLock/Unlock", 330, 380, switchLocked)  # 建立切换账户状态按钮
     # 第三排
     loginButton("转账\nTransfer", 580, 200, transfer)  # 建立转账按钮
     loginButton("查询交易明细\nTransaction Inquiry ", 580, 380, checkTransaction)  # 建立查询交易明细按钮

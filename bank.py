@@ -1,9 +1,6 @@
 import re
-from db import Database
+from db import Database, ListDatabase
 from decimal import Decimal
-
-# 存储格式：
-# 账号(数字),密码(六位数字),余额(浮点数，精确到小数点后两位),账号是否锁定(布尔值)
 
 
 class AccountLockedError(Exception):
@@ -18,6 +15,7 @@ class Account:
     """
     内部描述账户的数据结构类
     """
+    # 存储格式：账号(数字),密码(六位数字),余额(浮点数，精确到小数点后两位),账号是否锁定(布尔值)
     def __init__(self, password, balance, locked):
         self.password = password
         self.balance = Decimal(balance)
@@ -43,10 +41,39 @@ class Account:
 
     def serialize(self):
         """
-        将 Account 对象转换成 list，方便存储到到文件上
+        将 Account 对象转换成 list，方便存储到文件上
         :return: list
         """
         return [self.password, self.balance, self.locked]
+
+
+class Transaction:
+    """描述每个交易的数据结构类"""
+    # 存储格式：源账号,目标账号,交易类型,金额
+    def __init__(self, source, dest, method, amount):
+        self.source = source
+        self.dest = dest
+        self.method = method
+        self.amount = amount
+
+    @staticmethod
+    def deserialize(data):
+        """
+        将磁盘文件里存储的数据转换成 Transaction 对象
+        :param data: 每行数据，列表或元组类型
+        :return: Transaction
+        """
+        return Transaction(data[0], data[1], data[2], data[3])
+
+    def serialize(self):
+        """
+        将 Transaction 对象转换成 list，方便存储到文件上
+        :return: list
+        """
+        return [self.source, self.dest, self.method, self.amount]
+
+    def __str__(self):
+        return f"Transaction {self.method} from {self.source} to {self.dest} amount {self.amount};"
 
 
 class Bank:
@@ -55,13 +82,18 @@ class Bank:
     """
     def __init__(self):
         self.__db = Database("data.csv")
+        self.__transactionsDb = ListDatabase("transactions.csv")
         self.__accounts = {}
+        self.__transactions = []
 
         # 需要获取当前已分配出去的最大的账号，以免分配账号重复
         self.__currentMaxAccount = 4000000000000000
         for key in self.__db.keys():
             self.__currentMaxAccount = max(self.__currentMaxAccount, int(key))
             self.__accounts[key] = Account.deserialize(self.__db.get(key))
+
+        for item in self.__transactionsDb.items():
+            self.__transactions.append(Transaction.deserialize(item))
 
     def createAccount(self, password):
         """
@@ -114,6 +146,7 @@ class Bank:
         account = self.__convertAccount(accountNumber)
         account.balance += Bank.__convertAmount(amount)
         self.__db.set(accountNumber, account.serialize())
+        self.__insertTransaction(accountNumber, accountNumber, "deposit", amount)
         return account.balance
 
     def withdrawal(self, accountNumber, amount):
@@ -131,6 +164,7 @@ class Bank:
             raise OverflowError(f"取款金额 {amount} 大于当前账户余额 {account.balance}！")
         account.balance -= amount
         self.__db.set(accountNumber, account.serialize())
+        self.__insertTransaction(accountNumber, accountNumber, "withdrawal", amount)
         return account.balance
 
     def transfer(self, source, dest, amount):
@@ -150,8 +184,9 @@ class Bank:
             raise OverflowError(f"转账金额 {amount} 大于当前账户余额 {srcAccount.balance}！")
         srcAccount.balance -= amount
         destAccount.balance += amount
-        self.__db.setNoSave(source, srcAccount.serialize())
+        self.__db.setInMemory(source, srcAccount.serialize())
         self.__db.set(dest, destAccount.serialize())
+        self.__insertTransaction(source, dest, "transfer", amount)
         return srcAccount.balance
 
     def setLocked(self, accountNumber, locked):
@@ -163,6 +198,30 @@ class Bank:
         account = self.__convertAccount(accountNumber)
         account.locked = locked
         self.__db.set(accountNumber, account.serialize())
+
+    def getTransactions(self, account):
+        """
+        获取账号交易记录
+        :param account: 账号
+        :return: 交易记录，Transaction[]
+        """
+        transactions = []
+        for transaction in self.__transactions:
+            if transaction.dest == account:
+                transactions.append(transaction)
+        return transactions
+
+    def __insertTransaction(self, source, dest, method, amount):
+        """
+        插入新的交易记录
+        :param source: 源账号
+        :param dest: 目的账号
+        :param method: 交易类型
+        :param amount: 交易金额
+        """
+        transaction = Transaction(source, dest, method, amount)
+        self.__transactions.append(transaction)
+        self.__transactionsDb.insert(transaction.serialize())
 
     def resetPassword(self, accountNumber, newPassword):
         """
