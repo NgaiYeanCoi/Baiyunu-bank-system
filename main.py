@@ -75,6 +75,7 @@ def clearEntry():
 
 def bindFocusableWindow(window):
     """跟踪窗口焦点状态，当创建可能获得焦点（有输入框）的新窗口时调用"""
+
     def onClose():
         window.destroy()
         setActiveEntry(None)
@@ -159,10 +160,19 @@ def newDialog(title, width, height):
     return window
 
 
-def mainButton(text, x, y, command, bg='#ffffff', activeBackground='#026dbd'):
+def mainButton(text, x, y, command, bg='#ffffff', activeBackground='#026dbd', width=20, height=5):
     """在主窗口创建新的按钮"""
-    btn = tk.Button(root, text=text, width=20, height=5, bd=2, padx=10, bg=bg,
-                    activebackground=activeBackground, font=('宋体', 15, 'bold'), overrelief='sunken',
+    btn = tk.Button(root, text=text, width=width, height=height, bd=2, padx=10, bg=bg,
+                    activebackground=activeBackground, font=('黑体', 15, 'bold'), overrelief='sunken',
+                    command=command)
+    btn.place(x=x, y=y)
+    return btn
+
+
+def loginButton(text, x, y, command, bg='#ffffff', activeBackground='#026dbd', width=18, height=5):
+    """在登入窗口创建新的按钮"""
+    btn = tk.Button(root, text=text, width=width, height=height, bd=2, padx=10, bg=bg,
+                    activebackground=activeBackground, font=('黑体', 13, 'bold'), overrelief='sunken',
                     command=command)
     btn.place(x=x, y=y)
     return btn
@@ -180,8 +190,29 @@ def login(userAccount):
     :param userAccount: 账号
     """
     # 建立标题
-    canvasRoot.create_text(550, 120, text='请选择业务', font=('宋体', 25, 'bold', 'bold'), fill='white')
+    canvasRoot.create_text(550, 120, text='请选择业务', font=('宋体', 25, 'bold'), fill='white')
     canvasRoot.create_text(550, 150, text='Please select next step', font=('宋体', 20, 'bold', 'italic'), fill='white')
+
+    def helloUser():  # 建立helloUser标题
+        canvasRoot.create_text(950, 120, text=f'尾号：{userAccount[12:16]}，', font=('黑体', 15), fill='white')
+        currentTime = int(time.strftime('%H', time.localtime()))
+        if 6 <= currentTime < 11:
+            canvasRoot.create_text(1040, 120, text='早上好！', font=('宋体', 15),
+                                   fill='white')
+        elif 11 <= currentTime < 13:
+            canvasRoot.create_text(1040, 120, text='中午好！', font=('宋体', 15),
+                                   fill='white')
+        elif 13 <= currentTime < 18:
+            canvasRoot.create_text(1040, 120, text='下午好！', font=('宋体', 15),
+                                   fill='white')
+        elif 18 <= currentTime < 24:
+            canvasRoot.create_text(1040, 120, text='晚上好！', font=('宋体', 15),
+                                   fill='white')
+        elif 0 <= currentTime < 6:
+            canvasRoot.create_text(935, 150, text='夜深了\n早点休息吧', font=('宋体', 15, 'italic'),
+                                   fill='white')
+
+    helloUser()  # 嵌入helloUser标题
 
     def goBack():
         """登出按钮回调函数"""
@@ -191,6 +222,7 @@ def login(userAccount):
 
     def changePassword():
         """修改密码按钮回调"""
+
         def onConfirm():
             confirmButton.config(state=tk.DISABLED)
             userPasswordOld = changePasswordTopEntryPre.get()
@@ -229,6 +261,7 @@ def login(userAccount):
 
     def transfer():
         """转账按钮回调"""
+
         def onConfirm():
             confirmButton.config(state=tk.DISABLED)
             transferDesAccount = transferEntryDesAccount.get()
@@ -262,6 +295,7 @@ def login(userAccount):
 
     def deposit():
         """存款按钮回调"""
+
         def onConfirm():
             confirmButton.config(state=tk.DISABLED)
             # 获取交易前余额
@@ -289,11 +323,12 @@ def login(userAccount):
     def checkBalance():
         """查余额按钮回调"""
         locked = "已锁定" if bank.getLockState(userAccount) else "未锁定"
-        msg = f'您的账户{userAccount}\n余额为：{bank.getBalance(userAccount)}元\n您的用户状态：{locked}'
+        msg = f'您的账户{userAccount}\n余额为：{bank.getBalance(userAccount)}元\n您的账户状态：{locked}'
         messagebox.showinfo('查询余额', msg)
 
     def withdrawal():
         """取款按钮回调"""
+
         def onConfirm():
             confirmButton.config(state=tk.DISABLED)
             beforeBalance = bank.getBalance(userAccount)  # 获取交易前余额
@@ -301,11 +336,13 @@ def login(userAccount):
             try:
                 bank.withdrawal(userAccount, userAmount)
                 balance = bank.getBalance(userAccount)
-                messagebox.showinfo('取款', f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{balance}元')
+                messagebox.showinfo('取款',
+                                    f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{balance}元')
             except AccountLockedError:
                 messagebox.showwarning('错误', f'账户{userAccount}\n已被锁定')
             except OverflowError:
-                messagebox.showwarning('错误', f'取款金额不得大于账户余额\n账户：{userAccount}\n您的当前余额为{beforeBalance}元')
+                messagebox.showwarning('错误',
+                                       f'取款金额不得大于账户余额\n账户：{userAccount}\n您的当前余额为{beforeBalance}元')
             except ValueError:
                 messagebox.showwarning('错误', f'取款金额不合法请重新输入')
             window.destroy()
@@ -320,17 +357,64 @@ def login(userAccount):
         confirmButton = Button(window, text="确认", width=15, height=3, command=onConfirm)  # 确认按钮
         confirmButton.place(x=120, y=335)
 
+    def switchLocked():
+        """切换账户状态回调"""
+
+        def toggleSwitch():
+            if switchVar.get():
+                switchLabel.config(text='您当前的设定未：锁定')
+            else:
+                switchLabel.config(text='您当前的设定未：未锁定')
+
+        def onConfirm():
+            if switchVar.get():
+                bank.setLocked(userAccount, True)
+                messagebox.showinfo('切换账户状态', "锁定成功！")
+                checkUserStatusLabel.config(
+                    text=f'您当前的状态是：{"已锁定" if bank.getLockState(userAccount) else "未锁定"}')
+            else:
+                bank.setLocked(userAccount, False)
+                messagebox.showinfo('切换账户状态', "解锁成功！")
+                checkUserStatusLabel.config(
+                    text=f'您当前的状态是：{"已锁定" if bank.getLockState(userAccount) else "未锁定"}')
+
+        #
+        window = newDialog("切换账户状态", 300, 200)
+        checkUserStatusLabel = Label(window,
+                                     text=f"您当前的状态是：{"已锁定" if bank.getLockState(userAccount) else "未锁定"}")
+        checkUserStatusLabel.pack()
+        # 切换账户状态窗口
+        switchVar = tk.IntVar()  # 设定包装为整型
+        switchCheckbutton = tk.Checkbutton(window, text="切换状态", font=('黑体', 15, 'bold'), variable=switchVar,
+                                           command=toggleSwitch)
+        switchCheckbutton.pack(pady=15)
+        switchLabel = Label(window, text="您当前的设定未：未锁定")
+        switchLabel.pack(pady=15)
+        # 确认按钮
+        confirmButton = Button(window, text="确认", width=15, height=2, command=onConfirm)
+        confirmButton.pack()
+
+    def checkTransaction():
+        pass
+
     # 建立登入后的按钮
-    mainButton("查询余额\nBalance Inquiry", 125, 380, checkBalance)  # 建立查余额按钮
-    mainButton("取款\nWithdrawal", 125, 200, withdrawal)  # 建立取款按钮
-    mainButton("存款\nDeposit", 415, 200, deposit)  # 建立存款按钮
-    mainButton("登出\nLogout", 705, 380, goBack, '#026dbd', '#ffffff')  # 建立登出按钮
-    mainButton("转账\nTransfer", 705, 200, transfer)  # 建立转账按钮
-    mainButton("修改密码\nChange Password", 415, 380, changePassword)  # 建立修改密码
+    # 第一排
+    loginButton("取款\nWithdrawal", 80, 200, withdrawal)  # 建立取款按钮
+    loginButton("修改密码\nChange Password", 80, 380, changePassword)  # 建立查修改密码按钮
+    # 第二排
+    loginButton("存款\nDeposit", 330, 200, deposit)  # 建立存款按钮
+    loginButton("切换账户状态\nSwitch Account Status", 330, 380, switchLocked)  # 建立切换账户状态按钮
+    # 第三排
+    loginButton("转账\nTransfer", 580, 200, transfer)  # 建立转账按钮
+    loginButton("查询交易明细\nTransaction Inquiry ", 580, 380, checkTransaction)  # 建立查询交易明细按钮
+    # 第四排
+    loginButton("查询余额\nBalance Inquiry", 830, 200, checkBalance)  # 建立查询余额按钮
+    loginButton("登出\nLogout", 830, 380, goBack, '#026dbd', '#ffffff')  # 建立登出按钮
 
 
 def createAccount():
     """开户按钮回调"""
+
     def onConfirm():
         confirmButton.config(state=tk.DISABLED)
         userPassword = createAccountEntry1.get()
@@ -360,11 +444,12 @@ def createAccount():
 
 def signIn():
     """登入按钮回调"""
+
     def onConfirm():
         confirmButton.config(state=tk.DISABLED)
         userPassword = signInEntryPassword.get()
         userAccount = signInEntryAccount.get()
-        #login('1') ####前端调试用 不删
+        # login('1') ####前端调试用 不删
         if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', '您的密码不是六位！')
             signIn()
@@ -402,7 +487,6 @@ def mainWindow():
     height = 600  # 高
     configureWindowAttributes(root, "Baiyun University Bank System", width, height)
     root.protocol("WM_DELETE_WINDOW", onExit)
-
     canvasRoot = tk.Canvas(root, width=width, height=height)
     backgroundImg = getImage('./images/bg.png', width=width, height=height)
     canvasRoot.create_image(550, 300, image=backgroundImg)
