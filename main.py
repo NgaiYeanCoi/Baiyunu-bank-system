@@ -342,13 +342,16 @@ def login(userAccount):
                 messagebox.showinfo('取款',
                                     f'交易成功！账户：{userAccount}\n交易前余额为：{beforeBalance}元\n您当前的余额为：{balance}元')
             except AccountLockedError:
-                messagebox.showwarning('错误', f'账户{userAccount}\n已被锁定')
+                messagebox.showerror('错误', f'账户{userAccount}\n已被锁定')
+                window.destroy()
             except OverflowError:
-                messagebox.showwarning('错误',
+                messagebox.showerror('错误',
                                        f'取款金额不得大于账户余额\n账户：{userAccount}\n您的当前余额为{beforeBalance}元')
+                window.destroy()
             except ValueError:
-                messagebox.showwarning('错误', f'取款金额不合法请重新输入')
-            window.destroy()
+                messagebox.showerror('错误', f'取款金额不合法请重新输入')
+                window.destroy()
+            window.destroy() # 交易成功后销毁窗口
             setActiveEntry(None)
 
         # 取款窗口
@@ -431,15 +434,15 @@ def login(userAccount):
         text = tk.Text(frame, wrap="none", state="disabled")
 
         # 创建滚动条
-        scrollbar = tk.Scrollbar(frame, orient="vertical", command=text.yview)
-        # h_scrollbar = tk.Scrollbar(frame, orient="horizontal", command=text.xview)
+        vScrollbar = tk.Scrollbar(frame, orient="vertical", command=text.yview)
+        hScrollbar = tk.Scrollbar(frame, orient="horizontal", command=text.xview)
 
         # 配置Text控件
-        # text.configure(yscrollcommand=scrollbar.set,xscrollcommand=h_scrollbar)
-        text.configure(yscrollcommand=scrollbar.set)
+        text.configure(yscrollcommand=vScrollbar.set,xscrollcommand=hScrollbar.set)
 
         # 布局控件
-        scrollbar.pack(side="right", fill="y")
+        vScrollbar.pack(side="right", fill="y")
+        hScrollbar.pack(side="bottom", fill="x")
         text.pack(side="left", fill="both", expand=True)
         # 启用Text控件，以便插入控件
         text.config(state="normal")
@@ -477,11 +480,11 @@ def createAccount():
     def onConfirm():
         confirmButton.config(state=tk.DISABLED)
         userPassword = createAccountEntry1.get()
-        if userPassword != createAccountEntry2.get():
-            messagebox.showwarning('错误', '你输入的密码不一致')
-            createAccount()
-        elif not re.match(r"^\d{6}$", userPassword):
+        if not re.match(r"^\d{6}$", userPassword):
             messagebox.showwarning('错误', f'您输入的密码必须是六位整数！')
+            createAccount()
+        elif userPassword != createAccountEntry2.get():
+            messagebox.showwarning('错误', '你输入的密码不一致')
             createAccount()
         else:
             account = bank.createAccount(userPassword)
