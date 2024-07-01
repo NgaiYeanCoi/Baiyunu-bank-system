@@ -294,7 +294,7 @@ def login(userAccount):
             except OverflowError:
                 messagebox.showerror("错误", "转账金额大于账户余额！")
             except ValueError:
-                messagebox.showwarning('错误', f'取款金额不合法请重新输入')
+                messagebox.showwarning('错误', f'转账金额不合法请重新输入')
             except AccountLockedError:
                 messagebox.showwarning('错误', f'账户已被锁定！')
             window.destroy()
