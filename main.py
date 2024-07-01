@@ -42,6 +42,10 @@ createAccountBtn: Button
 signInBtn: Button
 # 存款对话框中金额的输入框
 depositAmountEntry: Entry
+# 显示时间的文本框，Label 对象
+timeLabel: Label
+# 更新时间的定时任务的 id
+timeTaskId: str
 
 # 必须持有所有 PhotoImage 对象的引用，防止其被销毁
 globalImages = {}
@@ -132,9 +136,10 @@ def getImage(file, width, height):
     return image
 
 
-def updateTime():
+def addTime():
     """创建时间文本框"""
     # 初始化timeLabel
+    global timeLabel
     currentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
     timeLabel = tk.Label(root, text=currentTime, font=10, fg='#ffffff', bg='#454545')
     timeLabel.place(x=5, y=570)
@@ -143,7 +148,8 @@ def updateTime():
         # 动态更新timeLabel的text参数
         updateCurrentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         timeLabel.config(text=updateCurrentTime)
-        timeLabel.after(1000, update)
+        global timeTaskId
+        timeTaskId = timeLabel.after(1000, update)
 
     update()
 
@@ -225,6 +231,7 @@ def login(userAccount):
     def goBack():
         """登出按钮回调函数"""
         if messagebox.askokcancel('登出账户', '是否要登出？'):
+            timeLabel.after_cancel(timeTaskId)
             root.destroy()
             mainWindow()
 
@@ -564,7 +571,7 @@ def mainWindow():
     txtId2 = canvasRoot.create_text(585, 385, text='Insert\nyour card', font=('黑体', 10, 'bold'), fill='white')
     canvasIdsToDelete.append(txtId1)
     canvasIdsToDelete.append(txtId2)
-    updateTime()  # 嵌入时间窗口
+    addTime()  # 嵌入时间窗口
     createAccountBtn = mainButton("开户注册\nCreate Account", 90, 200, createAccount)  # 建立开户按钮
     signInBtn = mainButton("登入\nSign In", 90, 380, signIn)  # 登录按钮
 
