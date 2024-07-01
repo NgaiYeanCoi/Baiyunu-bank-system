@@ -11,7 +11,6 @@ from typing import Optional
 from PIL import Image, ImageTk
 from bank import bank, AccountLockedError
 from tkinter import messagebox, Toplevel, Button, Label, Entry
-import csv
 
 # GUI的部分
 # 数字键盘按钮数据
@@ -433,10 +432,10 @@ def login(userAccount):
 
         # 创建滚动条
         scrollbar = tk.Scrollbar(frame, orient="vertical", command=text.yview)
-        #h_scrollbar = tk.Scrollbar(frame, orient="horizontal", command=text.xview)
+        # h_scrollbar = tk.Scrollbar(frame, orient="horizontal", command=text.xview)
 
         # 配置Text控件
-        #text.configure(yscrollcommand=scrollbar.set,xscrollcommand=h_scrollbar)
+        # text.configure(yscrollcommand=scrollbar.set,xscrollcommand=h_scrollbar)
         text.configure(yscrollcommand=scrollbar.set)
 
         # 布局控件
@@ -445,20 +444,15 @@ def login(userAccount):
         # 启用Text控件，以便插入控件
         text.config(state="normal")
 
-        # 读取CSV文件并显示数据
-        with open('transactions.csv', newline='', encoding='utf-8') as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader)  # 跳过标题行
-            for row in reader:
-                source, destination, operation, amount = row
-                text.window_create("end", window=Label(text, text=source))
-                text.insert("end", " " * 2)
-                text.window_create("end", window=Label(text, text=destination))
-                text.insert("end", " " * 2)
-                text.window_create("end", window=Label(text, text=operation))
-                text.insert("end", " " * 2)
-                text.window_create("end", window=Label(text, text=amount))
-                text.insert("end", "\n")
+        for transaction in bank.getTransactions(userAccount):
+            text.window_create("end", window=Label(text, text=transaction.source))
+            text.insert("end", " " * 2)
+            text.window_create("end", window=Label(text, text=transaction.dest))
+            text.insert("end", " " * 2)
+            text.window_create("end", window=Label(text, text=transaction.method))
+            text.insert("end", " " * 2)
+            text.window_create("end", window=Label(text, text=transaction.amount))
+            text.insert("end", "\n")
         # 禁用Text控件，防止用户编辑
         text.config(state="disabled")
 

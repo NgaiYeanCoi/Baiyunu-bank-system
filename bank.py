@@ -146,7 +146,7 @@ class Bank:
         account = self.__convertAccount(accountNumber)
         account.balance += Bank.__convertAmount(amount)
         self.__db.set(accountNumber, account.serialize())
-        self.__insertTransaction(accountNumber, accountNumber, "deposit", amount)
+        self.__insertTransaction(accountNumber, accountNumber, "存款", amount)
         return account.balance
 
     def withdrawal(self, accountNumber, amount):
@@ -164,7 +164,7 @@ class Bank:
             raise OverflowError(f"取款金额 {amount} 大于当前账户余额 {account.balance}！")
         account.balance -= amount
         self.__db.set(accountNumber, account.serialize())
-        self.__insertTransaction(accountNumber, accountNumber, "withdrawal", amount)
+        self.__insertTransaction(accountNumber, accountNumber, "取款", amount)
         return account.balance
 
     def transfer(self, source, dest, amount):
@@ -186,7 +186,7 @@ class Bank:
         destAccount.balance += amount
         self.__db.setInMemory(source, srcAccount.serialize())
         self.__db.set(dest, destAccount.serialize())
-        self.__insertTransaction(source, dest, "transfer", amount)
+        self.__insertTransaction(source, dest, "转账", amount)
         return srcAccount.balance
 
     def setLocked(self, accountNumber, locked):
