@@ -206,6 +206,7 @@ def login(userAccount):
     # 建立标题
     canvasRoot.create_text(550, 120, text='请选择业务', font=('宋体', 25, 'bold'), fill='white')
     canvasRoot.create_text(550, 150, text='Please select next step', font=('宋体', 20, 'bold', 'italic'), fill='white')
+    root.protocol("WM_DELETE_WINDOW", onExit)
 
     def helloUser():  # 建立helloUser标题
         canvasRoot.create_text(950, 120, text=f'尾号：{userAccount[12:16]}，', font=('黑体', 15), fill='white')
@@ -433,16 +434,16 @@ def login(userAccount):
         confirmButton.pack()
 
     def checkTransaction():
-        window = newDialog("查询交易明细", 450, 300)
+        window = newDialog("查询交易明细", 500, 300)
         # 插入文本
-        Label(window, text="源账户").place(x=60, y=10)
+        Label(window, text="源账户").place(x=65, y=10)
         Label(window, text="目的账户").place(x=200, y=10)
-        Label(window, text="操作").place(x=300, y=10)
-        Label(window, text="金额").place(x=355, y=10)
+        Label(window, text="操作").place(x=310, y=10)
+        Label(window, text="金额").place(x=365, y=10)
 
         # 创建Frame
-        frame = tk.Frame(window)
-        frame.place(x=30, y=30, width=390, height=260)
+        frame = tk.Frame(window, bg="#ffffff")
+        frame.place(x=30, y=30, width=420, height=270)
         # 创建Text控件
         text = tk.Text(frame, wrap="none", state="disabled")
 
@@ -462,11 +463,11 @@ def login(userAccount):
 
         for transaction in bank.getTransactions(userAccount):
             text.window_create("end", window=Label(text, text=transaction.source))
-            text.insert("end", " " * 2)
+            text.insert("end", " | ")
             text.window_create("end", window=Label(text, text=transaction.dest))
-            text.insert("end", " " * 2)
+            text.insert("end", " | ")
             text.window_create("end", window=Label(text, text=transaction.method))
-            text.insert("end", " " * 2)
+            text.insert("end", " | ")
             text.window_create("end", window=Label(text, text=transaction.amount))
             text.insert("end", "\n")
         # 禁用Text控件，防止用户编辑
