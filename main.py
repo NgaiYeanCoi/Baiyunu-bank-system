@@ -134,11 +134,18 @@ def getImage(file, width, height):
 
 def updateTime():
     """创建时间文本框"""
-    global timeLabel
+    # 初始化timeLabel
     currentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
     timeLabel = tk.Label(root, text=currentTime, font=10, fg='#ffffff', bg='#454545')
     timeLabel.place(x=5, y=570)
-    timeLabel.after(1000, updateTime)
+
+    def update():
+        # 动态更新timeLabel的text参数
+        updateCurrentTime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        timeLabel.config(text=updateCurrentTime)
+        timeLabel.after(1000, update)
+
+    update()
 
 
 def configureWindowAttributes(window, title, width, height):
@@ -182,7 +189,6 @@ def loginButton(text, x, y, command, bg='#ffffff', activeBackground='#026dbd', w
 def onExit():
     """用户关闭窗口时调用，显示是否退出询问方框"""
     if messagebox.askyesno('退出系统', '您真的要退出白云银行管理系统吗？'):
-        timeLabel.destroy()
         root.destroy()  # 关闭窗口
 
 
@@ -346,12 +352,12 @@ def login(userAccount):
                 window.destroy()
             except OverflowError:
                 messagebox.showerror('错误',
-                                       f'取款金额不得大于账户余额\n账户：{userAccount}\n您的当前余额为{beforeBalance}元')
+                                     f'取款金额不得大于账户余额\n账户：{userAccount}\n您的当前余额为{beforeBalance}元')
                 window.destroy()
             except ValueError:
                 messagebox.showerror('错误', f'取款金额不合法请重新输入')
                 window.destroy()
-            window.destroy() # 交易成功后销毁窗口
+            window.destroy()  # 交易成功后销毁窗口
             setActiveEntry(None)
 
         # 取款窗口
@@ -438,7 +444,7 @@ def login(userAccount):
         hScrollbar = tk.Scrollbar(frame, orient="horizontal", command=text.xview)
 
         # 配置Text控件
-        text.configure(yscrollcommand=vScrollbar.set,xscrollcommand=hScrollbar.set)
+        text.configure(yscrollcommand=vScrollbar.set, xscrollcommand=hScrollbar.set)
 
         # 布局控件
         vScrollbar.pack(side="right", fill="y")
