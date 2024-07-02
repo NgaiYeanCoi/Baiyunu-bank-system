@@ -21,10 +21,7 @@ class Database:
                 if line.find(',') == -1:
                     continue
                 split = line.split(",")
-                self.readItem(split)
-
-    def readItem(self, split):
-        self.__table[split[0]] = split[1:len(split)]
+                self.__table[split[0]] = split[1:len(split)]
 
     def get(self, key):
         """根据 key 获取对应的 list"""
@@ -47,14 +44,11 @@ class Database:
         """将内存中的数据同步到磁盘文件"""
         with open(self.__filename, "w", encoding="utf-8") as f:
             for key, value in self.__table.items():
-                self.writeItem(f, key, value)
-
-    def writeItem(self, f, key, value):
-        f.write(str(key))
-        for item in value:
-            f.write(",")
-            f.write(str(item))
-        f.write('\n')
+                f.write(str(key))
+                for item in value:
+                    f.write(",")
+                    f.write(str(item))
+                f.write('\n')
 
 
 class ListDatabase:
