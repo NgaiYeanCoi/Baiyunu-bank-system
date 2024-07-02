@@ -93,7 +93,7 @@ def createEntry(window, **args):
     entry.pack()
     entry.bind("<FocusIn>", lambda event: setActiveEntry(entry))  # 跟踪当前活跃
     entry.bind("<FocusOut>", lambda event: setActiveEntry(None))  # 失去焦点时置空
-    bindFocusableWindow(root)
+    bindFocusableWindow(window)
     return entry
 
 
