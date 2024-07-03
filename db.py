@@ -54,7 +54,7 @@ class Database:
 class ListDatabase:
     """
     数据存储模块，使用 csv 格式进行存储
-    格式：key,value1,value2,value3...
+    格式：value1,value2,value3...
     """
     def __init__(self, filename):
         """
